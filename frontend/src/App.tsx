@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Home from './Home';
 import ScanView from './ScanView';
+import Pilot from './Pilot';
 
 function useHashRoute(): string {
   const [hash, setHash] = useState(window.location.hash || '#/');
@@ -24,7 +25,7 @@ export function Logo({ size = 26 }: { size?: number }) {
 export default function App() {
   const route = useHashRoute();
   const scanMatch = route.match(/^#\/scan\/([\w-]+)/);
-  const page = scanMatch ? 'scan' : route.startsWith('#/cases') ? 'cases' : 'home';
+  const page = scanMatch ? 'scan' : route.startsWith('#/cases') ? 'cases' : route.startsWith('#/pilot') ? 'pilot' : 'home';
   return (
     <>
       <header className="topbar">
@@ -32,10 +33,11 @@ export default function App() {
         <nav className="topnav" aria-label="Main">
           <a href="#/" aria-current={page === 'home' ? 'page' : undefined}>New scan</a>
           <a href="#/cases" aria-current={page === 'cases' ? 'page' : undefined}>Case files</a>
+          <a href="#/pilot" aria-current={page === 'pilot' ? 'page' : undefined}>Pilot study</a>
         </nav>
       </header>
       <main>
-        {scanMatch ? <ScanView key={scanMatch[1]} scanId={scanMatch[1]} /> : <Home casesOnly={page === 'cases'} />}
+        {scanMatch ? <ScanView key={scanMatch[1]} scanId={scanMatch[1]} /> : page === 'pilot' ? <Pilot /> : <Home casesOnly={page === 'cases'} />}
       </main>
     </>
   );

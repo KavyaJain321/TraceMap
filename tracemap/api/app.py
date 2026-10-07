@@ -111,6 +111,22 @@ def create_app(store: Store | None = None) -> FastAPI:
                     return d
         raise HTTPException(404, "request not found")
 
+    @app.get("/api/pilots")
+    def list_pilots():
+        root = Path(store.root) / "pilot"
+        return sorted([d.name for d in root.iterdir() if (d / "results.csv").exists()]) if root.exists() else []
+
+    @app.get("/api/pilots/{name}")
+    def get_pilot(name: str):
+        from ..measure.report import build_report
+
+        if not name.replace("_", "").replace("-", "").isalnum():
+            raise HTTPException(404, "unknown pilot")
+        run_dir = Path(store.root) / "pilot" / name
+        if not (run_dir / "results.csv").exists():
+            raise HTTPException(404, "unknown pilot")
+        return build_report(run_dir, store)
+
     @app.get("/api/blobs/{sha}")
     def get_blob(sha: str, kind: Literal["image", "text"] = "image"):
         data = store.get_blob(sha)

@@ -252,6 +252,29 @@ mark { background: var(--trace); color: #fff; padding: 0 2px; border-radius: 2px
 .drawer h3 { margin: 18px 0 6px; }
 details summary { cursor: pointer; font-weight: 600; margin: 14px 0 6px; }
 
+/* ---------------------------------------------------------------- pilot charts */
+.chart { position: relative; background: var(--sheet); border: 1.5px solid var(--rule); border-radius: var(--r); padding: 16px 18px 10px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .grid { stroke: var(--rule-soft); stroke-width: 1; }
+.chart .axis { font: 11px var(--mono); fill: var(--ink-3); }
+.chart .row-label { font: 600 13px var(--body); fill: var(--ink); }
+.chart .value { font: 500 12px var(--mono); fill: var(--ink-2); }
+.chart .median { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.chart .dot circle:not(.hit-area) { fill: var(--trace); stroke: var(--sheet); stroke-width: 2; }
+.chart .dot { cursor: pointer; }
+.chart .dot:hover circle:not(.hit-area), .chart .dot:focus circle:not(.hit-area) { fill: var(--stamp); }
+.chart .dot:focus { outline: none; }
+.chart .hit-area { fill: transparent; stroke: none; }
+.chart .bar { fill: var(--trace); }
+.chart g:hover .bar, .chart g:focus .bar { fill: #095f66; }
+.chart g:focus { outline: none; }
+.chart-note { font-size: 13px; color: var(--ink-3); margin: 6px 0 0; }
+.tip {
+  position: absolute; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap; z-index: 5;
+  background: var(--ink); color: var(--sheet); font-size: 12.5px; padding: 5px 9px; border-radius: 4px;
+}
+.ledger small { font: 500 14px var(--mono); }
+
 /* ---------------------------------------------------------------- responsive */
 @media (max-width: 860px) {
   .graph-wrap { grid-template-columns: 1fr; }

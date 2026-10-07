@@ -101,7 +101,7 @@ export default function Result({ r }: { r: ScanResult }) {
         <div><b>{s.trackers}</b><span>tracking domains</span></div>
         <div><b>{s.companies}</b><span>companies</span></div>
         <div className={s.leaks ? 'hot' : ''}><b>{s.leak_recipients}</b><span>received your test details</span></div>
-        <div className={s.shared_id_edges ? 'hot' : ''}><b>{s.shared_id_edges}</b><span>ID exchanges between companies</span></div>
+        <div className={s.shared_id_edges && r.mode === 'full' ? 'hot' : ''}><b>{s.shared_id_edges}</b><span>{r.mode === 'full' ? 'ID exchanges between companies' : 'possible ID exchanges (unconfirmed)'}</span></div>
         <div><b>{s.consent_banner ? 'Yes' : 'No'}</b><span>cookie banner</span></div>
       </div>
       <p className="score-note">A 0–100 risk score is not shown yet: it will be added once its weights are validated against expert rankings.</p>

@@ -104,10 +104,14 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
     for e in sorted(shared, key=lambda e: -e.confidence):
         a, b = info.get(e.a), info.get(e.b)
         note = " (same company)" if e.same_entity else ""
-        out.append(Finding(severity="low" if e.same_entity else "medium", code="ID_SHARING",
-                           title=f"{_who(a.owner if a else None, e.a)} and {_who(b.owner if b else None, e.b)} exchanged an identifier for you{note}.",
-                           detail=f"Evidence: same user ID seen at both via {e.evidence_type}; confidence {e.confidence:.0%}. "
-                                  "This is how 'cookie syncing' links your profiles across companies.",
+        confirmed = e.confidence >= 0.6  # passed the two-visitor (A/B/A2) test
+        verb = "exchanged" if confirmed else "may have exchanged"
+        out.append(Finding(severity="low" if e.same_entity or not confirmed else "medium",
+                           code="ID_SHARING" if confirmed else "ID_SHARING_POSSIBLE",
+                           title=f"{_who(a.owner if a else None, e.a)} and {_who(b.owner if b else None, e.b)} {verb} an identifier for you{note}.",
+                           detail=f"Evidence: the same ID-like value was seen at both via {e.evidence_type}; confidence {e.confidence:.0%}. "
+                                  + ("Confirmed by comparing two separate visitors. This is how 'cookie syncing' links your profiles across companies."
+                                     if confirmed else "Unconfirmed: a quick scan uses one visitor, so this could be a shared constant. Run a thorough scan to confirm."),
                            request_ids=e.request_ids))
     fp_shared = [e for e in graph.edges if e.kind == "shared_id" and site in (e.a, e.b)]
     if fp_shared:
