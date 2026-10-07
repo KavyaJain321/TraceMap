@@ -1,0 +1,11 @@
+.venv
+var
+frontend/node_modules
+frontend/dist
+data/lists/nc-sa
+data/lists/*.txt
+data/lists/*.json
+research_notes
+reports
+**/__pycache__
+.git

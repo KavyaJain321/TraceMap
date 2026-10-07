@@ -144,9 +144,16 @@ def match_leaks(visit: Visit, report: LeakReport, site: str, classifier: "Classi
     if not report.canaries or not report.fields:
         return []
     pool = CanaryPool(report.canaries)
-    typed = {}
-    for f in report.fields:
-        typed.setdefault(f.canary_id, f)
+
+    def source_field(cid: str, req_time: float, frame_url: str | None) -> FieldFilled | None:
+        """The field this leak most likely came from: the latest field typed with this canary
+        before the request, preferring one in the same frame that sent the request."""
+        cands = [f for f in report.fields if f.canary_id == cid and f.typed_at <= req_time + 0.05]
+        if not cands:
+            return None
+        same = [f for f in cands if frame_url and f.frame_url == frame_url]
+        return max(same or cands, key=lambda f: f.typed_at)
+
     best: dict[tuple, LeakEvent] = {}
     for r in visit.requests:
         if not r.url.startswith("http"):
@@ -162,17 +169,19 @@ def match_leaks(visit: Visit, report: LeakReport, site: str, classifier: "Classi
                 rank = (where != "raw", -m.encoding.count("("), -len(needle))
                 cur = per_canary.get(m.canary.canary_id)
                 if cur is None or rank < cur[0]:
-                    per_canary[m.canary.canary_id] = (rank, m, where)
-            for cid, (_rank, m, where) in per_canary.items():
-                f = typed.get(cid)
+                    per_canary[m.canary.canary_id] = (rank, m, where, needle)
+            for cid, (_rank, m, where, needle) in per_canary.items():
+                req_time = visit.started_at + r.t
+                f = source_field(cid, req_time, r.frame_url)
                 if f is None:
                     continue
-                ms = max(0, int((visit.started_at + r.t - f.typed_at) * 1000))
-                conf = 0.9 if channel == "referer" else (0.95 if m.canary.kind == "phone" and m.encoding == "plain" else 0.99)
+                ms = max(0, int((req_time - f.typed_at) * 1000))
+                conf = 0.9 if channel == "referer" else (0.95 if m.canary.kind == "phone" and m.encoding == "phone" else 0.99)
                 enc = m.encoding if where == "raw" else f"{m.encoding} inside {where} payload"
-                ev = LeakEvent(canary_id=cid, kind=m.canary.kind, field=f.descriptor,
+                ev = LeakEvent(canary_id=cid, kind=m.canary.kind, field=f.descriptor, field_typed_at=f.typed_at,
                                recipient_domain=rdom, recipient_host=rhost, recipient_owner=owner, channel=channel,
-                               encoding=enc, request_id=r.request_id, request_url=r.url[:600],
+                               encoding=enc, matched=needle[:300], where=where,
+                               request_id=r.request_id, request_url=r.url[:600],
                                ms_after_typing=ms, first_party=first_party, confidence=conf)
                 key = (cid, rdom, channel, enc)
                 if key not in best or best[key].ms_after_typing > ms:

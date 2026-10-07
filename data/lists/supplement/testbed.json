@@ -2,11 +2,11 @@
   "_about": "Labels for the fake third parties in testbed/server.py (*.localhost). Harmless on real sites.",
   "version": "1",
   "entities": {
-    "AdNet A (testbed)": {"country": "IN", "category": "ad", "domains": ["adnet-a.localhost"], "verified": true},
-    "Broker B (testbed)": {"country": "IN", "category": "ad", "domains": ["broker-b.localhost"], "verified": true},
-    "Analytics C (testbed)": {"country": "IN", "category": "analytics", "domains": ["analytics-c.localhost"], "verified": true},
-    "Leaky D (testbed)": {"country": "IN", "category": "ad", "domains": ["leaky-d.localhost"], "verified": true},
-    "Replay F (testbed)": {"country": "IN", "category": "session_replay", "domains": ["replay-f.localhost"], "verified": true},
-    "Widget G (testbed)": {"country": "IN", "category": "functional", "domains": ["widget-g.localhost"], "verified": true}
+    "AdNet A": {"country": "IN", "category": "ad", "domains": ["adnet-a.localhost"], "verified": true},
+    "Broker B": {"country": "IN", "category": "ad", "domains": ["broker-b.localhost"], "verified": true},
+    "Analytics C": {"country": "IN", "category": "analytics", "domains": ["analytics-c.localhost"], "verified": true},
+    "Leaky D": {"country": "IN", "category": "ad", "domains": ["leaky-d.localhost"], "verified": true},
+    "Replay F": {"country": "IN", "category": "session_replay", "domains": ["replay-f.localhost"], "verified": true},
+    "Widget G": {"country": "IN", "category": "functional", "domains": ["widget-g.localhost"], "verified": true}
   }
 }

@@ -7,7 +7,7 @@ import traceback
 
 from .collusion.graph import build_graph
 from .config import CrawlConfig, settings
-from .contracts import LeakReport, ScanResult
+from .contracts import CrawlRecord, LeakReport, ScanResult
 from .crawl.crawler import Progress, crawl, emit, normalize_url
 from .detect.behaviour import risky_scripts
 from .detect.classify import Classifier, default_classifier
@@ -15,6 +15,47 @@ from .findings import build_findings
 from .leak.tracer import match_leaks, run_leak_test
 from .storage import Store
 from .util.domains import etld1
+
+
+async def analyze(record: CrawlRecord, report: LeakReport, result: ScanResult, classifier: Classifier,
+                  progress: Progress | None = None) -> ScanResult:
+    """Stages 2-5 on a stored CrawlRecord: pure function of its inputs, no browser needed."""
+    parties = classifier.classify(record)
+    scripts = risky_scripts(record)
+    await emit(progress, "detect", f"{sum(p.is_tracker for p in parties)} trackers among "
+                                   f"{sum(not p.first_party for p in parties)} third parties", pct=85)
+    lvisit = record.visit("L")
+    if lvisit is not None:
+        cloaked = {e.split(" ")[1] for p in parties if p.cloaked for e in p.evidence if e.startswith("cname:")}
+        report.leaks = match_leaks(lvisit, report, record.site, classifier, cloaked)
+        n = sum(not e.first_party for e in report.leaks)
+        await emit(progress, "leak", f"{n} leak event(s) to other companies found", pct=90, leaks=n)
+    graph = build_graph(record, parties)
+    await emit(progress, "graph", f"Identifier-flow graph: {len(graph.nodes)} nodes, "
+                                  f"{sum(e.kind == 'shared_id' for e in graph.edges)} shared-ID links", pct=94)
+    findings, summary = build_findings(record, parties, scripts, report, graph)
+    a = record.visit("A") or (record.visits[0] if record.visits else None)
+    result.site = record.site
+    result.screenshot_sha256 = a.pages[0].screenshot_sha256 if a and a.pages else None
+    result.parties, result.risky_scripts, result.leaks, result.graph = parties, scripts, report, graph
+    result.findings, result.summary = findings, summary
+    return result
+
+
+def reanalyze(store: Store, scan_id: str, classifier: Classifier | None = None) -> ScanResult:
+    """Re-run detection/leak matching/graph/findings on a saved scan (after improving a detector)."""
+    import asyncio
+
+    record = store.load_doc(scan_id, "crawl", CrawlRecord)
+    old = store.load_doc(scan_id, "result", ScanResult)
+    if record is None or old is None:
+        raise FileNotFoundError(f"scan {scan_id} has no stored crawl/result")
+    report = old.leaks.model_copy(deep=True)
+    asyncio.run(analyze(record, report, old, classifier or default_classifier()))
+    store.save_doc(scan_id, "result", old)
+    store.upsert_scan(scan_id, url=old.url, site=old.site, mode=old.mode, status=old.status,
+                      created_at=old.created_at, finished_at=old.finished_at, summary=old.summary.model_dump())
+    return old
 
 
 async def run_scan(url: str, store: Store, *, mode: str = "full", leak_test: bool = True,
@@ -57,26 +98,8 @@ async def run_scan(url: str, store: Store, *, mode: str = "full", leak_test: boo
         result.site = record.site
         store.save_doc(scan_id, "crawl", record)
         await emit(prog, "detect", "Classifying third parties", pct=80)
-        classifier = classifier or default_classifier()
-        parties = classifier.classify(record)
-        scripts = risky_scripts(record)
-        await emit(prog, "detect", f"{sum(p.is_tracker for p in parties)} trackers among "
-                                   f"{sum(not p.first_party for p in parties)} third parties", pct=85)
         report: LeakReport = leak_holder.get("report") or LeakReport(tested=False)
-        lvisit = record.visit("L")
-        if lvisit is not None:
-            cloaked = {e.split(" ")[1] for p in parties if p.cloaked for e in p.evidence if e.startswith("cname:")}
-            report.leaks = match_leaks(lvisit, report, record.site, classifier, cloaked)
-            n = sum(not e.first_party for e in report.leaks)
-            await emit(prog, "leak", f"{n} leak event(s) to other companies found", pct=90, leaks=n)
-        graph = build_graph(record, parties)
-        await emit(prog, "graph", f"Identifier-flow graph: {len(graph.nodes)} nodes, "
-                                  f"{sum(e.kind == 'shared_id' for e in graph.edges)} shared-ID links", pct=94)
-        findings, summary = build_findings(record, parties, scripts, report, graph)
-        a = record.visit("A") or (record.visits[0] if record.visits else None)
-        result.screenshot_sha256 = a.pages[0].screenshot_sha256 if a and a.pages else None
-        result.parties, result.risky_scripts, result.leaks, result.graph = parties, scripts, report, graph
-        result.findings, result.summary = findings, summary
+        await analyze(record, report, result, classifier or default_classifier(), prog)
         result.status = "done"
     except Exception as e:  # keep the scan record, surface the error
         result.status, result.error = "error", f"{type(e).__name__}: {e}"

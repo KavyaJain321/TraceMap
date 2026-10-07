@@ -152,6 +152,7 @@ class DetectedParty(_M):
     is_tracker: bool = False
     first_party: bool = False
     cloaked: bool = False  # first-party subdomain CNAME'd to a tracker
+    same_owner_as_site: bool = False  # e.g. a site's own CDN domain (flixcart.com for flipkart.com)
     request_count: int = 0
     hosts: list[str] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)  # which lists said so
@@ -223,11 +224,14 @@ class LeakEvent(_M):
     canary_id: str
     kind: Literal["email", "phone"]
     field: str  # descriptor of the field that was filled
+    field_typed_at: float | None = None  # epoch seconds typing started in that field
     recipient_domain: str
     recipient_host: str
     recipient_owner: str | None = None
     channel: str  # url | post_body | cookie | referer | header:<name>
     encoding: str  # e.g. "plain", "sha256(lower)", "base64(+91 variant)"
+    matched: str | None = None  # the exact string found (for highlighting in the proof view)
+    where: str = "raw"  # "raw" or how the payload was decoded before the match
     request_id: str
     request_url: str
     ms_after_typing: int

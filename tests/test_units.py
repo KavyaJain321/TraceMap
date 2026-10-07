@@ -77,11 +77,11 @@ def test_pool_finds_plain_hashed_and_nested():
     pool, email, phone = _pool()
     sha = hashlib.sha256(email.value.encode()).hexdigest()
     cases = {
-        f"https://t.com/p?em={sha}": "sha256(plain)",
-        f"https://t.com/p?em={sha.upper()}": "sha256(plain) [upper]",
-        "https://t.com/p?e=" + base64.b64encode(hashlib.md5(email.value.encode()).hexdigest().encode()).decode(): "base64(md5(plain))",
-        "d=" + quote(json.dumps([{"v": email.value}])): "url(plain)",
-        json.dumps({"ph": base64.b64encode(b"+919876543210").decode()}): "base64(+91)",
+        f"https://t.com/p?em={sha}": "sha256(email)",
+        f"https://t.com/p?em={sha.upper()}": "sha256(email) [upper]",
+        "https://t.com/p?e=" + base64.b64encode(hashlib.md5(email.value.encode()).hexdigest().encode()).decode(): "base64(md5(email))",
+        "d=" + quote(json.dumps([{"v": email.value}])): "url(email)",
+        json.dumps({"ph": base64.b64encode(b"+919876543210").decode()}): "base64(+91 phone)",
     }
     for text, enc in cases.items():
         hits = pool.search(text)

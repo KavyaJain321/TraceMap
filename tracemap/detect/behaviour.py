@@ -28,9 +28,11 @@ from ..util.domains import etld1
 _SIZE = re.compile(r"^(\d+)x(\d+)$")
 
 
-def _calls_by_script(record: CrawlRecord) -> dict[str, dict[str, APICall]]:
+def _calls_by_script(record: CrawlRecord, profiles: set[str] | None = None) -> dict[str, dict[str, APICall]]:
     out: dict[str, dict[str, APICall]] = defaultdict(dict)
     for v in record.visits:
+        if profiles is not None and v.profile not in profiles:
+            continue
         for c in v.api_calls:
             if not c.script_url:
                 continue
@@ -81,9 +83,17 @@ def script_flags(apis: dict[str, APICall]) -> dict[str, list[str]]:
 
 
 def risky_scripts(record: CrawlRecord) -> list[RiskyScript]:
+    """reads_form only counts during the leak test (profile L), when we actually typed:
+    in passive visits, frameworks read their own empty inputs all the time."""
+    leak_calls = _calls_by_script(record, {"L"})
     out = []
     for src, apis in _calls_by_script(record).items():
         flags = script_flags(apis)
+        flags.pop("reads_form", None)
+        if src in leak_calls:
+            reads = script_flags(leak_calls[src]).get("reads_form")
+            if reads:
+                flags["reads_form"] = reads
         if flags:
             out.append(RiskyScript(src=src, domain=etld1(src), flags=sorted(flags), evidence=flags))
     out.sort(key=lambda r: (-len(r.flags), r.src))

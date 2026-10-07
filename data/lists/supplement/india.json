@@ -23,6 +23,7 @@
     "Juspay": {"country": "IN", "category": "functional", "domains": ["juspay.in"], "verified": false},
     "Cashfree": {"country": "IN", "category": "functional", "domains": ["cashfree.com"], "verified": false},
     "mFilterIt": {"country": "IN", "category": "functional", "domains": ["mfilterit.com"], "verified": false},
-    "Capillary": {"country": "IN", "category": "analytics", "domains": ["capillarytech.com"], "verified": false}
+    "Capillary": {"country": "IN", "category": "analytics", "domains": ["capillarytech.com"], "verified": false},
+    "Flipkart": {"country": "IN", "category": "functional", "domains": ["flipkart.com", "flixcart.com"], "verified": false, "note": "first-party CDN family; found unlabelled by every list in the 2026-10-07 smoke test"}
   }
 }

@@ -66,12 +66,12 @@ def variants(c: Canary) -> dict[str, str]:
     """Normalised forms a script might take before encoding."""
     v = c.value
     if c.kind == "email":
-        out = {"plain": v, "lower": v.strip().lower()}
+        out = {"email": v, "lowercased email": v.strip().lower()}
     else:
         d = re.sub(r"\D", "", v)[-10:]
-        out = {"plain": d, "+91": "+91" + d, "91": "91" + d, "0-prefix": "0" + d,
-               "+91 spaced": f"+91 {d[:5]} {d[5:]}", "spaced": f"{d[:5]} {d[5:]}", "+91-": "+91-" + d,
-               "+91 ": "+91 " + d}
+        out = {"phone": d, "+91 phone": "+91" + d, "91 phone": "91" + d, "0-prefixed phone": "0" + d,
+               "+91 spaced phone": f"+91 {d[:5]} {d[5:]}", "spaced phone": f"{d[:5]} {d[5:]}",
+               "+91- phone": "+91-" + d, "+91 phone (space)": "+91 " + d}
     seen, res = set(), {}
     for k, s in out.items():
         if s not in seen:

@@ -37,11 +37,30 @@ def _scan(args) -> None:
     print(f"\nSaved under {settings.data_dir / 'scans' / res.scan_id}")
 
 
+def _analyze(args) -> None:
+    from .pipeline import reanalyze
+    from .storage import Store
+
+    store = Store(settings.data_dir)
+    ids = args.scan_ids or [r["scan_id"] for r in store.list_scans(10_000) if r["status"] == "done"]
+    for sid in ids:
+        try:
+            res = reanalyze(store, sid)
+        except FileNotFoundError as e:
+            print(f"  skip {sid}: {e}")
+            continue
+        s = res.summary
+        print(f"  {sid} {res.site}: trackers={s.trackers} leaks={s.leaks} id-links={s.shared_id_edges} findings={len(res.findings)}")
+
+
 def _serve(args) -> None:
     import uvicorn
 
     from .api.app import create_app
 
+    if args.allow_local:
+        settings.allow_local_targets = True
+        print("Local targets allowed (testbed mode). Do not expose this server to a network.")
     uvicorn.run(create_app(), host=args.host, port=args.port, log_level="info")
 
 
@@ -59,9 +78,14 @@ def main() -> None:
     s.add_argument("--phone", help="team-owned 10-digit number(s) for phone canaries (default: env TRACEMAP_CANARY_PHONES)")
     s.set_defaults(fn=_scan)
 
+    a = sub.add_parser("analyze", help="re-run detection/graph/findings on saved scans (no browser)")
+    a.add_argument("scan_ids", nargs="*", help="default: all stored scans")
+    a.set_defaults(fn=_analyze)
+
     v = sub.add_parser("serve", help="run the API + web UI")
     v.add_argument("--host", default="127.0.0.1")
     v.add_argument("--port", type=int, default=8000)
+    v.add_argument("--allow-local", action="store_true", help="allow scanning *.localhost (for the testbed demo)")
     v.set_defaults(fn=_serve)
 
     lst = sub.add_parser("lists", help="fetch/show tracker lists")

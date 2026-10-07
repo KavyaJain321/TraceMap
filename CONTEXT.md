@@ -18,15 +18,25 @@ When a user opens a website, the browser silently contacts dozens of hidden thir
 
 ## 3. What makes TraceMap different (the novelty — protect this)
 
-TraceMap is **not** "another tracker list." Its defensible contributions, together in one tool:
+> **Revised 2026-10-07 after the panel review (`PANEL_REVIEW.md`).** Each technique below has
+> prior art (Blacklight, Leaky Forms, cookie-sync and tracker-graph papers, PrivacyScore). The
+> defensible contribution is the **sector-stratified Indian measurement** they enable, taken as a
+> pre-enforcement DPDP baseline, plus the data products it produces. "Collusion" is replaced by
+> **identifier-flow network** (evidence of ID sharing, not proof of intent).
 
-1. **Interpretable collusion network per site** — reconstructed from identifier-sharing evidence, using graph community detection (Louvain) + centrality. (Existing tools give flat lists; the cookie-sync literature proves collusion happens but doesn't build a per-site usable graph.)
-2. **Verified data-leak provenance** — canary injection proves a specific value reached a specific third party (not domain-list guessing).
-3. **Fused privacy + security risk score** — combines tracking, collusion, and client-side supply-chain signals into one explainable number with reason codes.
-4. **Regional measurement** — first focused study of Indian banking/health/gov/e-commerce sites.
-5. **Interpretability** — plain-language reasons, not raw logs or a black box.
+Research questions (the paper is organised around these):
 
-**Do NOT** manufacture novelty by only swapping ML models, adding a dashboard, or renaming things. The novelty lives in 1–4 above.
+1. **RQ1 Coverage:** how much of the Indian third-party ecosystem do global tracker lists miss? → India tracker supplement, contributed upstream.
+2. **RQ2 Leakage:** how often do Indian sites send form PII (email, +91 phone) to third parties before Submit, to whom, in which encodings, by sector?
+3. **RQ3 Structure:** which organisations are identifier-flow hubs, and do communities show cross-company sharing beyond corporate ownership (tested against Bashir & Wilson 2018's negative result)?
+4. **RQ4 Supply chain:** exposure of login/payment pages to client-side attacks (vulnerable libraries, missing SRI/CSP, dangling script domains); ties to PCI DSS 6.4.3/11.6.1.
+5. **RQ5 Readiness:** pre-consent tracking and undisclosed processors, phrased as DPDP readiness gaps (core duties apply from ~May 2027), never as violations.
+
+The tool's distinctive pieces: A/B/A2 identifier confirmation feeding an entity-tagged graph,
+canary typing timed against the same capture (leak replay with proof), +91 phone canaries, an
+India vendor supplement, and a score shown with its uncertainty and validated against expert rankings.
+
+**Do NOT** manufacture novelty by only swapping ML models, adding a dashboard, or renaming things.
 
 ## 4. Existing work & where we sit (so we don't rebuild)
 
@@ -65,16 +75,17 @@ Treat each edge as **confidence-weighted** (a clue, not proof). This honesty is 
 
 ## 6. Tech stack (only what's needed)
 
-- **Language:** Python 3.11+
-- **Crawler:** Playwright (preferred, modern) — OpenWPM optional for measurement parity
-- **Tracker data:** Disconnect list, DuckDuckGo Tracker Radar, EasyPrivacy (public)
-- **Graph:** NetworkX + `python-louvain` (community detection) + centrality
-- **ML (classic, interpretable — NOT deep learning):** scikit-learn (script classification, risk-score calibration), SHAP for reason codes
-- **Backend:** FastAPI
-- **DB:** PostgreSQL (crawl results, findings); SQLite acceptable for MVP
-- **Queue (optional):** Redis + a worker for scaling crawls
-- **Frontend:** React + Cytoscape.js (collusion graph) / D3.js; plain, non-templated styling
-- **Packaging:** Docker
+*(Revised 2026-10-07 to match the build; reasons in `reports/TraceMap open source reuse plan.md`.)*
+
+- **Language:** Python 3.11 (pins: `networkx<3.7`; Leiden via MIT `graspologic-native`, not GPL `leidenalg`)
+- **Crawler:** Playwright driving installed Chrome over a raw CDP session (initiator stacks, POST bodies); mobile emulation; DuckDuckGo autoconsent (vendored, MPL-2.0) for banner modes; JS API hooks adapted from DuckDuckGo tracker-radar-collector (Apache-2.0). OpenWPM not used (Firefox-only, no Windows support).
+- **Tracker data (fetched at runtime, versions pinned):** DuckDuckGo TDS, Ghostery TrackerDB, Disconnect, third-party-web, EasyPrivacy/EasyList/IndianList, AdGuard Tracking + CNAME lists, plus the team's India supplement
+- **Graph:** NetworkX + centrality; Leiden + null models at corpus level (second half)
+- **ML (classic, interpretable, only where real labels exist):** calibrated logistic regression for edge confidence; InterpretML EBM for leak risk; transparent scorecard + SALib sensitivity analysis (no score shown until validated)
+- **Backend:** FastAPI with Server-Sent Events; SSRF guard
+- **Storage:** JSON documents + content-addressed blobs + SQLite index (Postgres optional later)
+- **Frontend:** React + TypeScript (Vite) + Cytoscape.js (fCoSE); hand-written CSS, fonts bundled for offline demos
+- **Packaging:** Docker (files provided; to be tested once Docker is installed)
 
 ## 7. Team & ownership (4 members)
 

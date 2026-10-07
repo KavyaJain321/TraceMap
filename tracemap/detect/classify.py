@@ -265,6 +265,7 @@ class Classifier:
                         if hit not in hits[d]:
                             hits[d].append(hit)
 
+        site_owner = self.owner_category(site)[0]
         parties = []
         for d in sorted(hosts):
             first = d == site
@@ -281,6 +282,8 @@ class Classifier:
             p = DetectedParty(domain=d, owner=owner, category=cat or "unknown", is_tracker=is_tracker,
                               first_party=first, request_count=counts[d], hosts=sorted(hosts[d])[:20],
                               sources=sources + sorted({e.split(":")[0] for e in evidence}), evidence=evidence)
+            if not first and site_owner and owner == site_owner:
+                p.same_owner_as_site = True
             if first and cloaked:
                 p.cloaked = True
                 p.evidence += [f"cname: {h} -> {t}" for h, t in sorted(cloaked.items())]

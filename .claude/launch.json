@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tracemap",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "tracemap", "serve", "--port", "8000", "--allow-local"],
+      "port": 8000
+    },
+    {
+      "name": "testbed",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "testbed", "--port", "8765"],
+      "port": 8765
+    }
+  ]
+}

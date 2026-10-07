@@ -1,0 +1,54 @@
+url,sector,name
+# Pilot convenience sample (10 well-known public sites per sector) for checking the pipeline.
+# NOT the study corpus: Phase 7 replaces this with a CrUX-India stratified sample (see docs/corpus.md).
+# Public landing pages only. Leak tests type synthetic values and never submit.
+https://www.india.gov.in/,government,National Portal of India
+https://www.mygov.in/,government,MyGov
+https://uidai.gov.in/,government,UIDAI
+https://www.incometax.gov.in/iec/foportal/,government,Income Tax e-Filing
+https://www.digilocker.gov.in/,government,DigiLocker
+https://www.passportindia.gov.in/,government,Passport Seva
+https://www.epfindia.gov.in/,government,EPFO
+https://www.irctc.co.in/,government,IRCTC
+https://www.rbi.org.in/,government,Reserve Bank of India
+https://pib.gov.in/,government,Press Information Bureau
+https://sbi.co.in/,banking,State Bank of India
+https://www.hdfcbank.com/,banking,HDFC Bank
+https://www.icicibank.com/,banking,ICICI Bank
+https://www.axisbank.com/,banking,Axis Bank
+https://www.kotak.com/,banking,Kotak Mahindra Bank
+https://www.pnbindia.in/,banking,Punjab National Bank
+https://www.bankofbaroda.in/,banking,Bank of Baroda
+https://www.idfcfirstbank.com/,banking,IDFC FIRST Bank
+https://www.yesbank.in/,banking,YES Bank
+https://www.indusind.com/,banking,IndusInd Bank
+https://www.apollohospitals.com/,health,Apollo Hospitals
+https://www.practo.com/,health,Practo
+https://www.1mg.com/,health,Tata 1mg
+https://pharmeasy.in/,health,PharmEasy
+https://www.netmeds.com/,health,Netmeds
+https://www.maxhealthcare.in/,health,Max Healthcare
+https://www.fortishealthcare.com/,health,Fortis Healthcare
+https://www.manipalhospitals.com/,health,Manipal Hospitals
+https://www.medanta.org/,health,Medanta
+https://www.narayanahealth.org/,health,Narayana Health
+https://www.flipkart.com/,ecommerce,Flipkart
+https://www.amazon.in/,ecommerce,Amazon India
+https://www.myntra.com/,ecommerce,Myntra
+https://www.meesho.com/,ecommerce,Meesho
+https://www.nykaa.com/,ecommerce,Nykaa
+https://www.ajio.com/,ecommerce,AJIO
+https://www.snapdeal.com/,ecommerce,Snapdeal
+https://www.bigbasket.com/,ecommerce,BigBasket
+https://www.jiomart.com/,ecommerce,JioMart
+https://www.croma.com/,ecommerce,Croma
+https://byjus.com/,edtech,BYJU'S
+https://unacademy.com/,edtech,Unacademy
+https://www.vedantu.com/,edtech,Vedantu
+https://www.pw.live/,edtech,Physics Wallah
+https://www.upgrad.com/,edtech,upGrad
+https://www.simplilearn.com/,edtech,Simplilearn
+https://testbook.com/,edtech,Testbook
+https://www.adda247.com/,edtech,Adda247
+https://www.careers360.com/,edtech,Careers360
+https://www.shiksha.com/,edtech,Shiksha

@@ -17,20 +17,31 @@ FLAG_TEXT = {
     "reads_form": "read what was typed into form fields",
     "listens_keys": "listens to typing/input events on the page",
 }
-ENCODING_HINT = {"plain": "in plain text", "lower": "in plain text"}
+SOURCE_NAME = {"ddg-tds": "DuckDuckGo", "ghostery": "Ghostery", "disconnect": "Disconnect",
+               "third-party-web": "third-party-web", "supplement:india": "TraceMap India list",
+               "supplement:testbed": "testbed labels", "easyprivacy": "EasyPrivacy", "easylist": "EasyList",
+               "indianlist": "IndianList", "adguard_tracking": "AdGuard"}
+HASHES = ("md5", "sha", "mmh3", "blake")
+CHANNEL_TEXT = {"url": "address", "post_body": "body", "cookie": "cookies", "referer": "Referer header"}
 
 
 def _who(owner: str | None, domain: str) -> str:
     return f"{owner} ({domain})" if owner and owner.lower() not in domain else domain
 
 
+def _sources(names: list[str]) -> str:
+    return ", ".join(dict.fromkeys(SOURCE_NAME.get(n, n) for n in names))
+
+
 def _enc(e: str) -> str:
-    if e in ENCODING_HINT:
-        return ENCODING_HINT[e]
-    if "(" in e:
-        outer = e.split("(")[0]
-        return f"disguised as {outer}" if "sha" in e or "md5" in e or "mmh3" in e or "blake" in e else f"encoded ({e})"
-    return f"as {e}"
+    base = e.split(" inside ")[0]
+    if "(" not in base:
+        how = "in plain text"
+    elif any(h in base for h in HASHES):
+        how = f"hashed ({base})"
+    else:
+        how = f"encoded ({base})"
+    return how + (" inside an encoded payload" if " inside " in e else "")
 
 
 def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: list[RiskyScript],
@@ -62,9 +73,9 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
         out.append(Finding(
             severity="high", code="LEAK_BEFORE_SUBMIT",
             title=f"Your {what} {verb} sent to {_who(first.recipient_owner, dom)} before you pressed Submit.",
-            detail=f"Seen {_enc(first.encoding)} via {first.channel}, {first.ms_after_typing / 1000:.1f}s after typing. "
-                   + ("Other forms: " + ", ".join(sorted({e.encoding for e in evs} - {first.encoding}))
-                      if len({e.encoding for e in evs}) > 1 else ""),
+            detail=f"Sent {_enc(first.encoding)} in the request {CHANNEL_TEXT.get(first.channel, first.channel)}, "
+                   f"{first.ms_after_typing / 1000:.1f}s after typing."
+                   + (f" {len(evs)} separate leak events in total." if len(evs) > 1 else ""),
             request_ids=[e.request_id for e in evs][:10]))
 
     # --- session replay / fingerprinting / form readers (capability)
@@ -72,7 +83,7 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
     for p in replay:
         out.append(Finding(severity="high", code="SESSION_REPLAY",
                            title=f"A session-recording service, {_who(p.owner, p.domain)}, is loaded. These can record clicks, scrolling and typing.",
-                           detail="Category from tracker lists: " + ", ".join(p.sources)))
+                           detail="Labelled session recording by: " + _sources(p.sources)))
     fp_flags = {"canvas_fp", "font_fp", "webgl_fp", "audio_fp", "webrtc_ip"}
     for s in scripts:
         party = info.get(s.domain)
@@ -83,7 +94,7 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
             out.append(Finding(severity="medium", code="FINGERPRINTING",
                                title=f"{_who(party.owner if party else None, s.domain)} tried to fingerprint your device.",
                                detail="It " + "; ".join(FLAG_TEXT[f] for f in fp) + f". Script: {s.src}"))
-        if "reads_form" in s.flags and s.domain not in by_recipient:
+        if "reads_form" in s.flags and s.domain not in by_recipient and not (party and party.same_owner_as_site):
             out.append(Finding(severity="medium", code="READS_FORM",
                                title=f"A script from {_who(party.owner if party else None, s.domain)} read what you typed into a form.",
                                detail=f"No leak of the test values was seen from it, but it had access. Script: {s.src}"))
@@ -111,7 +122,8 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
     if trackers:
         names = sorted({p.owner or p.domain for p in trackers})
         out.append(Finding(severity="medium" if len(trackers) >= 5 else "low", code="TRACKERS_PRESENT",
-                           title=f"{len(trackers)} tracking domains from {len(names)} companies loaded"
+                           title=f"{len(trackers)} tracking domain{'s' if len(trackers) != 1 else ''} from {len(names)} "
+                                 f"compan{'ies' if len(names) != 1 else 'y'} loaded"
                                  + (" before you made any cookie choice." if record.config.get("consent_mode", "none") == "none" else "."),
                            detail=", ".join(names[:12]) + (" ..." if len(names) > 12 else "")))
     cloaked = [p for p in parties if p.cloaked]

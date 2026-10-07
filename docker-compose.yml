@@ -1,0 +1,13 @@
+services:
+  tracemap:
+    build: .
+    ports: ["127.0.0.1:8000:8000"]   # local only: the API can drive a browser
+    volumes: ["tracemap-data:/data"]
+    environment:
+      # Set to a domain the team controls, and team-owned phone numbers (comma separated).
+      TRACEMAP_CANARY_EMAIL_DOMAIN: ${TRACEMAP_CANARY_EMAIL_DOMAIN:-example.com}
+      TRACEMAP_CANARY_PHONES: ${TRACEMAP_CANARY_PHONES:-}
+    shm_size: "1gb"                  # Chromium needs more than Docker's 64 MB default
+
+volumes:
+  tracemap-data:
