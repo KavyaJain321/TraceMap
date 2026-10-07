@@ -1,0 +1,543 @@
+<title>TraceMap Team Guide</title>
+<meta name="description" content="What TraceMap is, every screen explained, how each number is produced and verified, and what is done and left.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500..900&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a case-file handbook. Narrow reading column, sticky contents rail on wide screens,
+   evidence (screenshots) framed like exhibits. Same tokens as the TraceMap app. */
+:root {
+  --paper: #eef1f5; --sheet: #f8f9fb; --ink: #18202c; --ink-2: #4a5566; --ink-3: #6f7a8b;
+  --rule: #c8d0da; --rule-soft: #dde3ea;
+  --stamp: #5a2d82; --stamp-wash: #efe7f6; --trace: #0b7a83; --trace-wash: #dcf0f1;
+  --amber: #8f5600; --amber-wash: #fbefdc; --ok: #1d6b3a; --ok-wash: #e2f2e7;
+  --display: 'Archivo', 'Arial Narrow', Arial, sans-serif;
+  --body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171f; --sheet: #1a212c; --ink: #e6ebf2; --ink-2: #b4bfcc; --ink-3: #8b97a7;
+    --rule: #344051; --rule-soft: #283241;
+    --stamp: #c49ae6; --stamp-wash: #2c2238; --trace: #4cc4cc; --trace-wash: #16323a;
+    --amber: #f0b45c; --amber-wash: #33281a; --ok: #6fd391; --ok-wash: #183020; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171f; --sheet: #1a212c; --ink: #e6ebf2; --ink-2: #b4bfcc; --ink-3: #8b97a7;
+  --rule: #344051; --rule-soft: #283241;
+  --stamp: #c49ae6; --stamp-wash: #2c2238; --trace: #4cc4cc; --trace-wash: #16323a;
+  --amber: #f0b45c; --amber-wash: #33281a; --ok: #6fd391; --ok-wash: #183020; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.65 var(--body); }
+a { color: var(--trace); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--trace); outline-offset: 2px; border-radius: 3px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--sheet); border: 1px solid var(--rule-soft); border-radius: 4px; padding: 1px 5px; word-break: break-word; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 96px;
+  display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 56px; }
+@media (max-width: 960px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; } .toc { position: static !important; } }
+
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 14.5px; }
+.toc p { font: 600 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; border-left: 2px solid var(--rule); }
+.toc a { display: block; padding: 2px 0 2px 14px; color: var(--ink-2); text-decoration: none; }
+.toc a:hover { color: var(--ink); }
+
+main { min-width: 0; max-width: 880px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 850; letter-spacing: -0.01em; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 800; margin-top: 72px; padding-top: 22px; border-top: 2px solid var(--ink); }
+h3 { font-size: 21px; font-weight: 750; margin-top: 40px; }
+h4 { font: 700 15px var(--body); margin: 22px 0 6px; }
+p, ul, ol { margin: 12px 0; }
+main > p, section > p, section > ul, section > ol { max-width: 68ch; }
+li { margin: 4px 0; }
+.eyebrow { font: 600 12.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--stamp); margin: 0 0 10px; }
+.lede { font-size: 19.5px; color: var(--ink-2); max-width: 64ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font: 13px var(--mono); color: var(--ink-3); margin-top: 18px; }
+
+.stamp { display: inline-block; margin-top: 24px; padding: 8px 16px 7px; transform: rotate(-2deg); border: 3px double var(--stamp);
+  color: var(--stamp); border-radius: 4px; font: 800 17px/1.2 var(--display); letter-spacing: .07em; text-transform: uppercase; }
+
+.callout { background: var(--sheet); border: 1.5px solid var(--rule); border-left: 5px solid var(--trace); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0; }
+.callout.warn { border-left-color: var(--amber); }
+.callout.key { border-left-color: var(--stamp); }
+.callout p { margin: 6px 0; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 18px 0; }
+.card { background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 8px; padding: 16px 18px; min-width: 0; }
+.card h4 { margin-top: 0; }
+.card p { margin: 6px 0 0; font-size: 15.5px; color: var(--ink-2); }
+
+.rq { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); }
+.rq b.n { font: 600 14px var(--mono); color: var(--stamp); padding-top: 3px; }
+
+.tablewrap { overflow-x: auto; margin: 18px 0; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 560px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule-soft); }
+th { font: 600 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.pill { display: inline-block; white-space: nowrap; font: 600 11.5px/1 var(--mono); letter-spacing: .04em; padding: 5px 8px; border-radius: 999px; border: 1.5px solid; }
+.pill.v { color: var(--ok); background: var(--ok-wash); border-color: var(--ok); }
+.pill.p { color: var(--amber); background: var(--amber-wash); border-color: var(--amber); }
+.pill.n { color: var(--ink-2); background: var(--paper); border-color: var(--rule); }
+.pill.h { color: var(--stamp); background: var(--stamp-wash); border-color: var(--stamp); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 18px; font-size: 14px; color: var(--ink-2); margin: 10px 0 4px; }
+
+figure { margin: 22px 0; }
+figure img { display: block; width: 100%; height: auto; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
+figcaption { font-size: 14px; color: var(--ink-3); margin-top: 8px; }
+figcaption b { color: var(--ink-2); font-family: var(--mono); font-weight: 500; font-size: 12.5px; letter-spacing: .06em; margin-right: 6px; }
+
+.screen { display: grid; gap: 0; }
+.wsh { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 14px 0; }
+.wsh > div { background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 8px; padding: 14px 16px; min-width: 0; }
+.wsh h4 { margin: 0 0 6px; font: 600 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.wsh p, .wsh ul { margin: 6px 0 0; font-size: 15.5px; }
+.wsh ul { padding-left: 18px; }
+
+dl.defs { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 8px 18px; margin: 16px 0; }
+dl.defs dt { font-weight: 700; }
+dl.defs dd { margin: 0; color: var(--ink-2); }
+@media (max-width: 560px) { dl.defs { grid-template-columns: minmax(0, 1fr); gap: 2px; } dl.defs dd { margin-bottom: 10px; } }
+
+.checks { list-style: none; padding: 0; }
+.checks li { position: relative; padding-left: 30px; margin: 8px 0; }
+.checks li::before { position: absolute; left: 0; top: 1px; font: 700 13px var(--mono); }
+.checks.done li::before { content: '[x]'; color: var(--ok); }
+.checks.todo li::before { content: '[ ]'; color: var(--amber); }
+.checks.plan li::before { content: '-->'; color: var(--ink-3); }
+
+details.qa { border-bottom: 1px solid var(--rule-soft); padding: 10px 0; }
+details.qa summary { cursor: pointer; font-weight: 700; }
+details.qa p { margin: 8px 0 4px; color: var(--ink-2); max-width: 68ch; }
+
+pre { background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font: 14px/1.6 var(--mono); }
+.script { background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 8px; padding: 6px 20px; }
+.script p { max-width: 70ch; }
+.script .t { font: 600 12px var(--mono); color: var(--trace); letter-spacing: .06em; margin-right: 8px; }
+footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 18px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol>
+    <li><a href="#project">1. The project</a></li>
+    <li><a href="#how">2. How it works</a></li>
+    <li><a href="#screens">3. Every screen explained</a></li>
+    <li><a href="#verify">4. Is it correct?</a></li>
+    <li><a href="#pilot">5. Pilot results</a></li>
+    <li><a href="#panel">6. Presenting to the panel</a></li>
+    <li><a href="#status">7. Done, to do, future</a></li>
+    <li><a href="#run">8. Running it</a></li>
+    <li><a href="#glossary">9. Glossary</a></li>
+  </ol>
+</nav>
+
+<main>
+<header>
+  <p class="eyebrow">Team guide · mid-semester review</p>
+  <h1>TraceMap Team Guide</h1>
+  <p class="lede">What we built, every screen and number explained, where each number comes from, how sure we are of it, and what is left. Read sections 1, 4 and 6 before the review.</p>
+  <div class="meta"><span>Written 7 Oct 2026</span><span>Code: first half complete, 44 automated tests passing</span><span>Pilot: 49 of 50 Indian sites scanned</span></div>
+  <div class="stamp">First half: built and tested</div>
+</header>
+
+<!-- =============================================================== 1 -->
+<section id="project">
+<h2>1. The project</h2>
+
+<h3>What TraceMap is</h3>
+<p>When you open a website, your browser quietly talks to many other companies: ad networks, analytics firms, data brokers, session-recording services. Their scripts run inside the page, so they can see what you click and, in some cases, what you type into forms before you press Submit.</p>
+<p><b>TraceMap opens a website the way a phone user would, records every company the page contacts, types a made-up email and phone number into its forms without ever submitting, and shows who received them.</b> It also finds companies that pass the same user ID between them (cookie syncing). Every finding links to the exact network request that proves it.</p>
+
+<div class="callout key">
+<p><b>Main goal.</b> Use the tool to run the first sector-by-sector study of Indian websites (government, banking, health, e-commerce, education) that combines verified form leaks, identifier sharing and client-side security exposure, as a baseline taken <i>before</i> the DPDP Act's duties on websites apply (about May 2027).</p>
+<p>The tool is the method. The study and the data it produces are the contribution.</p>
+</div>
+
+<h3>Five research questions</h3>
+<div class="rq"><b class="n">RQ1</b><div><b>Coverage.</b> How much of the Indian third-party ecosystem do global tracker lists miss? Output: an India tracker list, submitted to the public lists.</div></div>
+<div class="rq"><b class="n">RQ2</b><div><b>Leakage.</b> Which Indian sites send a typed email or +91 phone number to other companies before Submit, to whom, and in what disguise?</div></div>
+<div class="rq"><b class="n">RQ3</b><div><b>Structure.</b> Which companies are hubs of user-ID sharing, and does sharing go beyond plain company ownership? (An earlier paper, Bashir and Wilson 2018, found tracker "communities" were not meaningful; we test this on Indian data and report what we find.)</div></div>
+<div class="rq"><b class="n">RQ4</b><div><b>Supply chain.</b> How exposed are login and payment pages to script attacks (outdated libraries, no integrity checks, abandoned script domains)? Second half.</div></div>
+<div class="rq"><b class="n">RQ5</b><div><b>Readiness.</b> What DPDP readiness gaps appear before enforcement (tracking before consent, undisclosed processors, tracking on child-facing pages)? We say "readiness gap", never "violation".</div></div>
+
+<h3>Why now, why India</h3>
+<div class="grid2">
+  <div class="card"><h4>DPDP Act timing</h4><p>The DPDP Rules were notified on 13 Nov 2025; core duties for websites apply from about May 2027. A careful measurement now is a "before" picture nobody can take later.</p></div>
+  <div class="card"><h4>Script attacks are a compliance issue</h4><p>PCI DSS 6.4.3 and 11.6.1 (mandatory since 31 Mar 2025) require payment pages to inventory and watch every script. The polyfill.io attack (2024) hit 100,000+ sites.</p></div>
+  <div class="card"><h4>India is mobile-first</h4><p>About 65% of Indian web traffic is mobile (StatCounter, Aug 2026), so TraceMap visits every site as a phone (Chrome on a Pixel 7 profile).</p></div>
+  <div class="card"><h4>The global data has an India gap</h4><p>DuckDuckGo's Tracker Radar crawls no Indian region, and major open lists miss Indian vendors such as MoEngage, Netcore and Razorpay.</p></div>
+</div>
+
+<h3>Who would use it (real-world use cases)</h3>
+<div class="tablewrap"><table>
+<tr><th>User</th><th>What TraceMap gives them</th><th>Why they need it</th></tr>
+<tr><td>Online shops, payment pages, PCI assessors</td><td>A list of every script on a page, who loaded it, and (second half) a change alert when scripts change</td><td>PCI DSS 6.4.3 / 11.6.1 script inventory and tamper detection</td></tr>
+<tr><td>Company privacy officers (DPOs)</td><td>A readiness report: trackers before consent, which companies receive data, form data leaving before submit</td><td>Preparing for DPDP duties before May 2027</td></tr>
+<tr><td>Journalists and civil society</td><td>Findings with proof: the exact request, time, and script, plus screenshots</td><td>The Markup's "Pixel Hunt" model, which led to US FTC actions</td></tr>
+<tr><td>CERT-In empanelled auditors, bank IT audit</td><td>Third-party script exposure on public pages (second half: outdated libraries with known CVEs)</td><td>Third-party risk sections of audits</td></tr>
+<tr><td>Researchers and list maintainers</td><td>An open dataset and an India tracker list</td><td>Better tracker coverage for Indian users</td></tr>
+</table></div>
+
+<h3>What is new, honestly</h3>
+<p>Each technique has prior art. The Markup's <b>Blacklight</b> and the <b>Leaky Forms</b> study (USENIX Security 2022) type fake values into forms; cookie-sync studies (CCS 2014, CCS 2016, WWW 2019) detect ID swapping; Indian studies covered news sites (2021) and government cookies (2022). What nobody has done is combine verified form leaks, identifier sharing and supply-chain exposure across Indian sectors, with proof per finding, an India vendor list and +91 phone canaries. We say this openly; it is a stronger position than claiming to invent the techniques.</p>
+</section>
+
+<!-- =============================================================== 2 -->
+<section id="how">
+<h2>2. How it works</h2>
+<p>Six stages. Each is a separate module that reads and writes fixed data formats (<code>tracemap/contracts.py</code>), so stages 2 to 6 can be re-run on saved crawls without a browser (<code>python -m tracemap analyze</code>).</p>
+<div class="tablewrap"><table>
+<tr><th>Stage</th><th>What it does</th><th>How</th><th>Code</th><th>Owner</th></tr>
+<tr><td>1. Crawl</td><td>Opens the site as a phone, visits the landing page and 4 inner pages (2 in quick mode), records every request, cookie, stored value and sensitive browser API used</td><td>Playwright driving installed Chrome; Chrome DevTools Protocol for request origins and POST bodies; in-page hooks on about 80 browser APIs (list adapted from DuckDuckGo's open-source collector); DuckDuckGo autoconsent for cookie banners</td><td><code>tracemap/crawl/</code></td><td>Kavya</td></tr>
+<tr><td>2. Detect</td><td>Names the company behind each domain, its type (ad, analytics, session recording...), and flags risky script behaviour</td><td>DuckDuckGo, Ghostery, Disconnect and third-party-web data (majority vote on type) + EasyPrivacy, EasyList, IndianList, AdGuard rules + our India list; behaviour rules from published fingerprinting research</td><td><code>tracemap/detect/</code></td><td>Nityavardhan</td></tr>
+<tr><td>3. ID graph</td><td>Finds values that identify a person and the companies they reach</td><td>Two separate visitors (A, B) plus A's revisit (A2); rules from Englehardt and Narayanan (CCS 2016)</td><td><code>tracemap/collusion/</code></td><td>Krati</td></tr>
+<tr><td>4. Leak test</td><td>Types a fake email and phone into forms, never submits, and searches all traffic for them</td><td>A fresh browser profile; ~48,000 precomputed hashed/encoded versions searched with an Aho-Corasick matcher; method from Englehardt et al. 2018 and Leaky Forms 2022, reimplemented</td><td><code>tracemap/leak/</code></td><td>Kartik</td></tr>
+<tr><td>5. Findings</td><td>Turns evidence into plain-English sentences with severity and links to proof</td><td>Fixed reason codes (listed in section 3.4)</td><td><code>tracemap/findings.py</code></td><td>Krati / Kartik</td></tr>
+<tr><td>6. Measure</td><td>Runs many sites in a batch and summarises by sector</td><td>Resumable batch runner, one site at a time, per-site time limit</td><td><code>tracemap/measure/</code></td><td>Krati + all</td></tr>
+</table></div>
+<p>The web app is a FastAPI server (live progress streamed to the browser) and a React interface. Everything runs on one laptop; scans are stored under <code>var/</code>.</p>
+</section>
+
+<!-- =============================================================== 3 -->
+<section id="screens">
+<h2>3. Every screen explained</h2>
+<p>Each screen below has: what you see, where the data comes from, and how sure we are. Status labels used throughout:</p>
+<div class="legend">
+  <span><span class="pill v">Verified</span> checked against known answers</span>
+  <span><span class="pill p">Partly verified</span> checked on the test site, not yet measured on real sites</span>
+  <span><span class="pill n">From public lists</span> as reliable as the source lists</span>
+  <span><span class="pill h">Not yet</span> planned for the second half</span>
+</div>
+
+<h3 id="s-intake">3.1 New scan</h3>
+<figure><img src="img/home.png" alt="TraceMap New scan page with the website address field, depth, cookie banner and device options" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 1</b>The start page.</figcaption></figure>
+<div class="wsh">
+  <div><h4>What you see</h4><ul>
+    <li><b>Website address</b>: any public site. Private and local addresses are refused unless the server runs with <code>--allow-local</code> (needed for our test site).</li>
+    <li><b>Depth</b>: <i>Quick</i> = one visitor, landing page + 2 inner pages (~1 min). <i>Thorough</i> = visitors A, B and A's revisit, landing + 4 inner pages (~3-4 min). Only thorough scans can confirm ID sharing.</li>
+    <li><b>Cookie banner</b>: <i>Leave untouched</i> (what happens before any choice), <i>Accept all</i>, <i>Reject all</i>.</li>
+    <li><b>Device</b>: phone (default) or laptop.</li>
+    <li><b>Test forms</b>: runs the fake email/phone test.</li>
+  </ul></div>
+  <div><h4>Where it comes from</h4><p>The options map one-to-one to the crawler settings (<code>CrawlConfig</code>). The three notes at the bottom ("Nothing real is sent", "Every claim has proof", "What it cannot see") are the project's ground rules.</p><p><b>Recent case files</b> lists every stored scan; click one to open it. This also works offline, which is our demo backup.</p></div>
+</div>
+
+<h3 id="s-progress">3.2 Live progress</h3>
+<figure><img src="img/progress.png" alt="Scan in progress: stage rail, progress bar, four counters and a live log" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 2</b>A scan of our test shop, 26 seconds in.</figcaption></figure>
+<div class="wsh">
+  <div><h4>What you see</h4><ul>
+    <li><b>Stage rail</b>: Visit pages → Test forms → Identify companies → Map ID sharing → Write report.</li>
+    <li><b>Counters</b>: requests recorded; other domains contacted; form fields given test data; leaks found (shown when matching finishes).</li>
+    <li><b>Log</b>: each step with seconds since start. <code>[A]</code>, <code>[B]</code>, <code>[A2]</code> are the visitors; <code>[L]</code> is the leak-test visitor. Teal lines are typing events.</li>
+  </ul></div>
+  <div><h4>Where it comes from</h4><p>The scan runs in the background and streams events to the page (Server-Sent Events). The same events are saved to <code>events.jsonl</code>, so a finished scan can replay its log.</p><p>The progress bar is an estimate between fixed checkpoints, not an exact percentage.</p></div>
+</div>
+
+<h3 id="s-case">3.3 Case file: verdict, numbers, screenshot</h3>
+<figure><img src="img/case.png" alt="Case file for the test shop: violet stamp reading Data left before submit, summary numbers, and findings" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 3</b>The case file for a thorough scan of our test shop.</figcaption></figure>
+<h4>The verdict stamp (one of four)</h4>
+<dl class="defs">
+  <dt>Data left before submit</dt><dd>At least one other company received the fake email or phone. Shows how many companies.</dd>
+  <dt>No leak seen</dt><dd>Fields were filled, and the fake values were not seen in any request to another company.</dd>
+  <dt>Forms not tested</dt><dd>No email/phone field was found, or the form test was switched off.</dd>
+  <dt>Blocked by site</dt><dd>The site showed a bot-check page; results are incomplete.</dd>
+</dl>
+<h4>The summary numbers (the ledger)</h4>
+<dl class="defs">
+  <dt>other domains</dt><dd>Distinct registrable domains (e.g. <code>google-analytics.com</code>, not each subdomain) other than the site's own, that received at least one request in any visit.</dd>
+  <dt>tracking domains</dt><dd>Of those, the ones classed as ad, analytics, social, session recording or fingerprinting by the source lists, or matched by a filter-list blocking rule.</dd>
+  <dt>companies</dt><dd>Distinct owners of the other domains (the domain itself when the owner is unknown).</dd>
+  <dt>received your test details</dt><dd>Distinct other domains that received the fake email or phone.</dd>
+  <dt>ID exchanges between companies</dt><dd>Links where the same user ID reached two <i>different</i> companies. In quick scans this reads "possible ID exchanges (unconfirmed)".</dd>
+  <dt>cookie banner</dt><dd>Whether DuckDuckGo autoconsent detected a consent pop-up for visitor A.</dd>
+</dl>
+<p>The phone image on the right is the screenshot we took of the landing page during the scan. The line about the 0–100 score is deliberate: we do not show a score until its weights are validated (second half).</p>
+
+<h3 id="s-findings">3.4 Findings tab: every reason code</h3>
+<p>Findings are sorted by severity (High, Medium, Low, Note). Each has a plain-English title, a detail line, and a <b>Show proof</b> button when it is backed by specific requests.</p>
+<div class="tablewrap"><table>
+<tr><th>Code (internal)</th><th>Severity</th><th>Example title</th><th>How we detect it</th><th>Status</th></tr>
+<tr><td><code>LEAK_BEFORE_SUBMIT</code></td><td>High</td><td>Your email was sent to Leaky D before you pressed Submit.</td><td>The unique fake value (or one of ~48,000 hashed/encoded versions) appears in a request to another company after it was typed</td><td><span class="pill v">Verified</span> test site 5/5, 0 false</td></tr>
+<tr><td><code>SESSION_REPLAY</code></td><td>High</td><td>A session-recording service is loaded.</td><td>Any source list labels the domain "session replay" (e.g. FullStory, Hotjar)</td><td><span class="pill n">From public lists</span> capability, not observed recording</td></tr>
+<tr><td><code>FINGERPRINTING</code></td><td>Medium</td><td>Analytics C tried to fingerprint your device.</td><td>Script behaviour rules: drew text on a canvas and read it back; ran a silent audio test; read graphics-card IDs; probed fonts; WebRTC IP pattern</td><td><span class="pill p">Partly verified</span> test site 1/1</td></tr>
+<tr><td><code>READS_FORM</code></td><td>Medium</td><td>A script read what you typed into a form.</td><td>Another company's script read input values while we typed (only during the leak test)</td><td><span class="pill p">Partly verified</span> test site 2/2</td></tr>
+<tr><td><code>ID_SHARING</code></td><td>Medium</td><td>AdNet A and Broker B exchanged an identifier for you.</td><td>Thorough scan: value same for A and A2, different for B, seen at two different companies</td><td><span class="pill v">Verified</span> test site 1/1</td></tr>
+<tr><td><code>ID_SHARING_POSSIBLE</code></td><td>Low</td><td>... may have exchanged an identifier (unconfirmed).</td><td>Quick scan: an ID-like value seen at two companies, without the two-visitor check</td><td><span class="pill p">Unconfirmed</span> by design</td></tr>
+<tr><td><code>ID_SHARING_SAME_COMPANY</code></td><td>Note</td><td>5 identifier links stayed within one company (Google, Twitter).</td><td>Both ends have the same owner (e.g. google.com and youtube.com)</td><td><span class="pill n">From public lists</span> ownership data</td></tr>
+<tr><td><code>FIRST_PARTY_ID_SHARED</code></td><td>Low</td><td>Your visitor ID on this site is shared with 3 other companies.</td><td>An ID stored by the site (cookie/storage) also reaches other companies</td><td><span class="pill v">Verified</span> test site</td></tr>
+<tr><td><code>TRACKERS_PRESENT</code></td><td>Medium/Low</td><td>13 tracking domains from 4 companies loaded before you made any cookie choice.</td><td>Count of tracking domains (definition above); "before any choice" when the banner is left untouched</td><td><span class="pill n">From public lists</span></td></tr>
+<tr><td><code>CNAME_CLOAKING</code></td><td>Medium</td><td>A tracker is disguised as part of this website.</td><td>A subdomain of the site is listed as an alias of a tracker (DuckDuckGo / AdGuard data)</td><td><span class="pill h">Not yet</span> no test case yet; full DNS check in second half</td></tr>
+<tr><td><code>NO_CONSENT_BANNER</code></td><td>Note</td><td>No cookie-consent banner was detected.</td><td>autoconsent found no known banner; custom banners can be missed</td><td><span class="pill p">Partly verified</span></td></tr>
+<tr><td><code>NO_FORM_TESTED</code> / <code>NO_LEAK_SEEN</code></td><td>Note</td><td>The test email was not seen going to other companies.</td><td>Fields found and filled; no match in any request</td><td><span class="pill v">Verified</span> clean test site</td></tr>
+<tr><td><code>SCAN_BLOCKED</code></td><td>Note</td><td>The site showed a bot-check page.</td><td>Page title/text patterns (e.g. "Access Denied", "Just a moment"), challenge frames, 403/429/503</td><td><span class="pill v">Verified</span> test site + AJIO checked by hand</td></tr>
+</table></div>
+
+<h3 id="s-proof">3.5 The proof drawer</h3>
+<figure><img src="img/proof.png" alt="Proof drawer showing the typed email, that it left as a SHA-256 hash in the web address, the sending script, and the request with the hash highlighted" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 4</b>Proof for "Your email was sent to Leaky D". The highlighted text is the SHA-256 hash of our fake email.</figcaption></figure>
+<div class="wsh">
+  <div><h4>What you see</h4><ul>
+    <li><b>We typed</b>: the fake value and the field it went into.</li>
+    <li><b>It left as</b>: the disguise (e.g. <code>sha256(email)</code>) and where in the request (address, body, cookie, header).</li>
+    <li><b>Sent to</b>, <b>Timing</b> (seconds after typing).</li>
+    <li><b>Method, Sent by</b> (the script responsible), <b>On page</b>, <b>Browser profile</b>, <b>Captured at</b>.</li>
+    <li>The full request address and body with the match highlighted; request headers on demand.</li>
+  </ul></div>
+  <div><h4>Where it comes from</h4><p>Straight from the stored crawl record: the request captured by Chrome's DevTools Protocol, including the script call stack that caused it. Nothing here is computed for display; it is the raw evidence.</p><p>This is the answer to "how do you know?". You can open the request, see the hash, and hash the fake email yourself to check.</p></div>
+</div>
+
+<h3 id="s-replay">3.6 Leak replay</h3>
+<figure><img src="img/replay.png" alt="Leak replay timeline: four typed fields on top, lines to Leaky D, Replay F and Widget G at the times the requests left" loading="lazy" width="2160" height="958"><figcaption><b>FIG 5</b>The test shop: email and phone reach three companies within 7 seconds of typing.</figcaption></figure>
+<div class="wsh">
+  <div><h4>How to read it</h4><ul>
+    <li>Time runs left to right from the first keystroke.</li>
+    <li>Top lane, black marks: the moments we typed a test detail (an "(iframe)" mark is a field inside an embedded widget).</li>
+    <li>One lane per company that received something. Each violet dot is a request carrying our detail; the teal line connects it to the field it came from.</li>
+    <li>Labels show what left and its disguise ("as typed" means no disguise). Click any dot for proof. <b>Replay</b> animates it.</li>
+    <li>The table below lists every leak event.</li>
+  </ul></div>
+  <div><h4>Where it comes from</h4><p>Typing times are recorded when TraceMap types; request times come from Chrome. Each leak is attributed to the latest field typed with that value before the request, preferring a field in the same frame that sent it. Repeated requests with the same disguise to the same company are shown once (the earliest).</p><p><span class="pill v">Verified</span> on the test site against the planted answers.</p></div>
+</div>
+
+<h3 id="s-map">3.7 ID-sharing map</h3>
+<figure><img src="img/map.png" alt="Network graph: the test shop as a black square, companies as coloured dots, thick violet lines for shared user IDs and a dashed teal redirect from AdNet A to Broker B" loading="lazy" width="2160" height="1020"><figcaption><b>FIG 6</b>The test shop's network. The thick violet line AdNet A to Broker B is the planted cookie sync.</figcaption></figure>
+<div class="wsh">
+  <div><h4>Shapes and colours</h4><ul>
+    <li><b>Black square</b>: the website. <b>Dots</b>: other domains, coloured by type (amber advertising, teal analytics, violet session recording, blue social, grey functional). A violet ring marks a tracker. Bigger dots have more links.</li>
+    <li><b>Grey arrow</b>: X's script or page loaded something from Y.</li>
+    <li><b>Teal dashed arrow</b>: X redirected the browser to Y (how IDs are often handed over).</li>
+    <li><b>Violet line</b>: the same user ID was seen at both. Thicker = more confident; dashed = under 60% (unconfirmed).</li>
+  </ul></div>
+  <div><h4>Confidence values</h4><ul>
+    <li>80%: confirmed by visitors A, B and A2 (90-95% if seen on several pages).</li>
+    <li>45%: stable for A, but B never sent that value, so no comparison.</li>
+    <li>30%: quick scan, single visitor.</li>
+  </ul><p>These are transparent rules for now. In the second half they are replaced by a model trained on ~300 links labelled by hand, with a reliability check.</p><p>"Show only identifier sharing" hides the load arrows. Click a dot or line for details and proof.</p></div>
+</div>
+
+<h3 id="s-companies">3.8 Companies tab</h3>
+<figure><img src="img/companies.png" alt="Companies table listing each other domain with company, type, tracker yes/no, request count and the lists it was found in" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 7</b>Every other domain the test shop contacted.</figcaption></figure>
+<p>Columns: <b>Domain</b>; <b>Company</b> (owner; "same company as the site" for a site's own CDN, e.g. flixcart.com for Flipkart); <b>Type</b>; <b>Tracker</b>; <b>Requests</b>; <b>Known from</b>, which lists recognised it. A domain known from no list is a candidate for our India list (RQ1). Owner comes from the first source that knows it (our India list, then DuckDuckGo, Ghostery, Disconnect, third-party-web); type is a majority vote across sources, except that any "session recording" label wins.</p>
+<p><span class="pill n">From public lists</span> The India list entries are marked unverified until two of us check each vendor's own documentation.</p>
+
+<h3 id="s-pilot">3.9 Pilot study page</h3>
+<figure><img src="img/pilot.png" alt="Pilot study page with headline numbers, a dot chart of tracking domains per site by sector, a bar chart of companies by number of sites, and a table of unlisted domains" loading="lazy" width="2160" height="2550"><figcaption><b>FIG 8</b>The pilot page, live from the stored scans.</figcaption></figure>
+<div class="wsh">
+  <div><h4>What you see</h4><ul>
+    <li>Headline numbers for the 50-site pilot.</li>
+    <li><b>Dot chart</b>: one dot per site, its number of tracking domains; the dark tick is the sector median. Click a dot to open that site's case file.</li>
+    <li><b>Company bars</b>: on how many sites each company appeared as a tracker.</li>
+    <li><b>Unlisted domains</b>: third parties on no global list.</li>
+    <li>Sector table and a full site table.</li>
+  </ul></div>
+  <div><h4>Where it comes from</h4><p>Built on request from every stored pilot scan (<code>tracemap/measure/report.py</code>), so it updates after any re-analysis. "Possible ID sharing*" is starred because quick scans cannot confirm it.</p></div>
+</div>
+</section>
+
+<!-- =============================================================== 4 -->
+<section id="verify">
+<h2>4. Is it correct?</h2>
+<p>How we check each kind of claim, and where we stand. The short answer for the panel: <b>everything the tool claims is checked against a test website with planted answers; real-site accuracy is measured in the second half.</b></p>
+
+<h3>The test website (our ground truth)</h3>
+<p><code>testbed/server.py</code> runs a fake Indian shop on <code>shop.localhost</code> with six fake companies, each planting a known behaviour. The answers are written down in <code>testbed/ground_truth.json</code>, and automated tests compare TraceMap's output with them on every change.</p>
+<div class="tablewrap"><table>
+<tr><th>Planted</th><th>What it does</th><th>Found?</th></tr>
+<tr><td>AdNet A</td><td>Stores a user ID, sends it in pixels, redirects to Broker B with the ID</td><td>Yes: tracker, ID link, redirect</td></tr>
+<tr><td>Broker B</td><td>Receives AdNet A's ID through the redirect (cookie sync)</td><td>Yes: confirmed ID link, 80%+</td></tr>
+<tr><td>Analytics C</td><td>Canvas and audio fingerprinting, client ID cookie</td><td>Yes: both fingerprinting flags</td></tr>
+<tr><td>Leaky D</td><td>Sends SHA-256 of the email on blur; base64 of the +91 phone in a POST body</td><td>Yes: both, with the right disguise</td></tr>
+<tr><td>Replay F</td><td>Session recorder: posts typed values URL-encoded</td><td>Yes: email and phone</td></tr>
+<tr><td>Widget G</td><td>Chat widget in an iframe: sends base64 of the email typed inside it</td><td>Yes: found the field inside the iframe</td></tr>
+<tr><td>The shop itself</td><td>Sends the email to its own server</td><td>Correctly not counted as a leak</td></tr>
+<tr><td>clean.localhost</td><td>No third parties at all</td><td>Zero findings</td></tr>
+<tr><td>blocked.localhost</td><td>Bot-check page</td><td>Marked blocked</td></tr>
+</table></div>
+<p><b>Negative control:</b> we search the same captured traffic for an email we never typed. It must give zero hits, and it does. This shows the matcher does not invent leaks.</p>
+
+<h3>Status of every number</h3>
+<div class="tablewrap"><table>
+<tr><th>Claim / number</th><th>How it is produced</th><th>Evidence today</th><th>Status</th></tr>
+<tr><td>Requests, domains contacted</td><td>Chrome DevTools Protocol events for every frame</td><td>Test site: all planted requests captured with their origin script</td><td><span class="pill v">Verified</span></td></tr>
+<tr><td>Third party vs the site's own</td><td>Registrable domain from the Public Suffix List (pinned snapshot)</td><td>Test site 6/6; unit tests on .co.in, .gov.in and .sbi domains</td><td><span class="pill v">Verified</span></td></tr>
+<tr><td>Company names and types</td><td>4 public datasets + 4 filter lists + our India list</td><td>Spot checks (Google Analytics → Google/analytics; Hotjar → session recording; CleverTap, MoEngage resolved)</td><td><span class="pill n">From public lists</span></td></tr>
+<tr><td>India vendor labels</td><td>Team-written list (23 vendors)</td><td>Not yet checked against vendor docs</td><td><span class="pill h">Not yet</span> 2-coder check</td></tr>
+<tr><td>Form leaks</td><td>Unique canary + 48k disguises</td><td>Test site 5/5, 0 wrong recipients, negative control 0</td><td><span class="pill p">Partly verified</span> real sites wait for ethics</td></tr>
+<tr><td>Fingerprinting flags</td><td>Published rules over browser API use</td><td>Test site 1/1</td><td><span class="pill p">Partly verified</span> 200 hand-labelled scripts planned</td></tr>
+<tr><td>Session recording</td><td>List labels</td><td>Known vendors (FullStory, Hotjar...)</td><td><span class="pill n">From public lists</span> capability only</td></tr>
+<tr><td>Confirmed ID sharing</td><td>A/B/A2 rule</td><td>Test site: real IDs confirmed, timestamps and page names rejected</td><td><span class="pill p">Partly verified</span> 300 hand-labelled links planned</td></tr>
+<tr><td>Cookie banner detected</td><td>DuckDuckGo autoconsent rules</td><td>8 of 49 pilot sites; custom banners can be missed</td><td><span class="pill p">Partly verified</span> manual check planned</td></tr>
+<tr><td>Bot-check detection</td><td>Title/text/frame/status patterns</td><td>Test site; AJIO "Access Denied" confirmed by hand</td><td><span class="pill v">Verified</span></td></tr>
+<tr><td>Pilot sector numbers</td><td>Quick passive scans of 50 sites</td><td>Convenience sample, one run, one connection</td><td><span class="pill p">Indicative only</span></td></tr>
+<tr><td>0–100 risk score</td><td>Not shown</td><td>Needs expert-ranking validation</td><td><span class="pill h">Not yet</span></td></tr>
+</table></div>
+
+<div class="callout warn">
+<p><b>Limits we always state.</b> TraceMap sees only what happens in the browser. Data shared later between company servers is invisible, so every number is a minimum. We only test public pages (no logins). An ID link is evidence of sharing, not proof of intent. Form tests on real sites have not been run yet; they wait for ethics approval.</p>
+</div>
+</section>
+
+<!-- =============================================================== 5 -->
+<section id="pilot">
+<h2>5. Pilot results</h2>
+<p>50 well-known sites, 10 per sector, scanned on 7 Oct 2026 in quick passive mode: phone browser, landing page + 2 inner pages, no cookie choice made, <b>no form typing</b>. 49 completed; AJIO showed an "Access Denied" bot wall. This is a convenience sample to test the pipeline, not the study.</p>
+<figure><img src="img/pilot_strip.png" alt="Dot chart: tracking domains per site by sector. Government median 2, banking 10, health 13.5, e-commerce 15 with three sites above 40, education 16.5" loading="lazy" width="2475" height="975"><figcaption><b>FIG 9</b>Tracking domains per site. Each dot is a site; the tick is the sector median.</figcaption></figure>
+<div class="tablewrap"><table>
+<tr><th>Sector</th><th class="num">Completed</th><th class="num">Median tracking domains</th><th>Most</th><th class="num">Cookie banner</th></tr>
+<tr><td>Government</td><td class="num">10 / 10</td><td class="num">2</td><td>MyGov, 13</td><td class="num">2</td></tr>
+<tr><td>Banking</td><td class="num">10 / 10</td><td class="num">10</td><td>HDFC Bank, 19</td><td class="num">3</td></tr>
+<tr><td>Health</td><td class="num">10 / 10</td><td class="num">13.5</td><td>17</td><td class="num">1</td></tr>
+<tr><td>E-commerce</td><td class="num">9 / 10</td><td class="num">15</td><td>Croma, 42</td><td class="num">2</td></tr>
+<tr><td>Education</td><td class="num">10 / 10</td><td class="num">16.5</td><td>18</td><td class="num">0</td></tr>
+<tr><td><b>All</b></td><td class="num"><b>49 / 50</b></td><td class="num"><b>13</b></td><td>Croma 42, Nykaa 41, Amazon India 40</td><td class="num"><b>8</b></td></tr>
+</table></div>
+<div class="grid2">
+  <div class="card"><h4>48 of 49 sites</h4><p>loaded at least one tracker before any cookie choice.</p></div>
+  <div class="card"><h4>8 of 49 sites</h4><p>load a known session-recording tool (FullStory, Hotjar, Crazy Egg, ContentSquare), including Axis Bank, Fortis Healthcare and Narayana Health. Capability, not observed recording.</p></div>
+  <div class="card"><h4>19 of 49 sites</h4><p>use Indian martech per our draft India list: CleverTap on 10, WebEngage 5, MoEngage 2, VWO 2, Colombia 2.</p></div>
+  <div class="card"><h4>8.7%</h4><p>of third-party appearances (69 of 790) are on no global list, e.g. bhashini.co.in, senseforth.com. Some are a site's own other domains; all need hand review.</p></div>
+</div>
+<h4>Lessons the pilot taught us</h4>
+<ul>
+  <li><b>SBI moved.</b> sbi.co.in now shows a notice that the site moved to <code>sbi.bank.in</code> (the RBI <code>.bank.in</code> migration). The study corpus must track new bank domains. Re-scanned at the new address.</li>
+  <li><b>A frozen page stalled the run</b> (epfindia.gov.in). Every in-page step now has a time limit and each scan has an overall budget.</li>
+  <li><b>Same-company ID links</b> (Google ↔ YouTube) cluttered the findings; they are now grouped into one note.</li>
+  <li><b>Quick scans can't confirm ID sharing</b>, so the app now labels those links "possible".</li>
+  <li>Median 23 seconds per site in quick mode, so the full 1,500-site study is a few days of running at a polite pace.</li>
+</ul>
+<p>Full numbers: <code>docs/pilot_results.md</code>. Raw rows: <code>var/pilot/pilot_50/results.csv</code>.</p>
+</section>
+
+<!-- =============================================================== 6 -->
+<section id="panel">
+<h2>6. Presenting to the panel</h2>
+<h3>Three-minute talk track</h3>
+<div class="script">
+<p><span class="t">0:00</span>When you open a website, your browser quietly talks to many companies. Abroad, studies showed scripts sending your email to ad companies before you press Submit. Nobody has measured this for Indian sites, sector by sector.</p>
+<p><span class="t">0:30</span>TraceMap opens a site like a phone user, records every company it contacts, types a fake email and phone number without submitting, and shows who received them, with the exact request as proof.</p>
+<p><span class="t">1:00</span>Timing matters: the DPDP Rules were notified in November 2025, and duties apply from about May 2027. Our measurement now is a baseline that cannot be taken later.</p>
+<p><span class="t">1:20</span>We tested it on a fake shop where we planted the answers: it finds all six companies, all five leaks, the cookie sync, and invents nothing (negative control).</p>
+<p><span class="t">1:50</span>Pilot on 50 Indian sites: 48 of 49 load trackers before any choice; the typical page loads 13 tracking domains; 8 load session-recording tools, including a bank and two hospital groups; 19 use Indian martech that global lists under-cover.</p>
+<p><span class="t">2:30</span>Next: real-site form tests after ethics approval, 1,500 sites sampled properly, security checks, a validated score. [Then the live demo.]</p>
+</div>
+
+<h3>Demo steps</h3>
+<ol>
+  <li>Start the test website and the app (section 8). Open <code>http://127.0.0.1:8000</code>.</li>
+  <li>Scan <code>http://shop.localhost:8765/</code>, <i>Thorough</i>. Point at the live log and the teal "typed test email" lines.</li>
+  <li>While it runs (~2 min), open the stored test-shop case from <b>Case files</b>.</li>
+  <li>Stamp and numbers → a High leak finding → <b>Show proof</b>: the SHA-256 hash highlighted.</li>
+  <li><b>Leak replay</b> → press Replay → click a dot.</li>
+  <li><b>ID-sharing map</b> → click the AdNet A to Broker B line → Show proof (the redirect carrying the ID).</li>
+  <li><b>Pilot study</b> page → the sector chart → click a bank's dot to open its case.</li>
+  <li>Backup if the network fails: everything above opens from stored scans.</li>
+</ol>
+
+<h3>Questions to expect</h3>
+<details class="qa"><summary>Isn't this just Blacklight or Leaky Forms?</summary><p>We build on both and cite them. Blacklight is a single-page tool for journalists; Leaky Forms studied EU/US top sites. Neither maps ID sharing or covers Indian sectors. Our contribution is the Indian sector study with proof per finding, +91 phone formats, and the India vendor list. In the second half we run Blacklight on 100 of our sites and report how well we agree.</p></details>
+<details class="qa"><summary>How do you know a leak is real and not a coincidence?</summary><p>The fake email is random and new for every scan, so finding it (or its hash) in a request cannot be a coincidence. Every leak links to the captured request. The negative control (searching for an email we never typed) gives zero hits.</p></details>
+<details class="qa"><summary>How do you know a value is a user ID?</summary><p>Two separate visitors plus a return visit: an ID is the same when visitor A comes back and different for visitor B. Timestamps and page names fail that test. The thresholds come from the 2016 Princeton million-site study.</p></details>
+<details class="qa"><summary>Where is the machine learning?</summary><p>Only where real labels exist, in the second half: a calibrated model for ID-link confidence (trained on ~300 hand-labelled links) and an explainable leak-risk model trained on canary-verified leaks. We deliberately do not train a "risk" model on labels we would invent.</p></details>
+<details class="qa"><summary>Why is there no risk score?</summary><p>A score is only meaningful once its weights are tested. We will show it with an uncertainty range, checked against rankings by three people, in the second half.</p></details>
+<details class="qa"><summary>Is typing into bank forms ethical or legal?</summary><p>We never submit, never type into password/OTP/card fields, and use only made-up values; submission is blocked in code. Real-site form tests have not run yet: they wait for the ethics committee. The pilot was passive (no typing).</p></details>
+<details class="qa"><summary>What about tracking done server-side?</summary><p>It is invisible from the browser, so we report every number as a minimum. That limit is stated in the app and the paper.</p></details>
+<details class="qa"><summary>Why only 50 sites?</summary><p>It is a pilot to test the pipeline and measure cost. The study uses ~1,500 sites sampled from the Chrome UX Report India list, stratified by sector and popularity, with proper statistics.</p></details>
+<details class="qa"><summary>Who would actually use this?</summary><p>Privacy officers preparing for DPDP, payment-page owners and PCI assessors (script inventory), journalists, auditors, and the tracker-list maintainers who would receive our India list.</p></details>
+<details class="qa"><summary>What did you reuse?</summary><p>DuckDuckGo's autoconsent (cookie banners) and their browser-API list, public tracker datasets, and published methods reimplemented from the papers. Everything is credited in <code>NOTICE.md</code>.</p></details>
+</section>
+
+<!-- =============================================================== 7 -->
+<section id="status">
+<h2>7. Done, to do, future</h2>
+<h3>Done (first half)</h3>
+<ul class="checks done">
+  <li>Crawler: phone emulation, visitors A/B/A2, landing + inner pages, request origins, POST bodies, cookies with who set them, storage, browser API hooks, cookie-banner modes, bot-wall detection, time limits</li>
+  <li>Detection: 4 tracker datasets, 4 filter lists, India list v0 (23 vendors), behaviour flags</li>
+  <li>Leak test: fake email/phone, iframe fields, no-submit guard, ~48k disguises, source-field attribution</li>
+  <li>ID graph with two-visitor confirmation; same-company grouping</li>
+  <li>Findings with reason codes and proof links</li>
+  <li>Web app: scan + live progress, case file, proof drawer, leak replay, ID-sharing map, companies, pilot page</li>
+  <li>Test website with ground truth; 44 automated tests</li>
+  <li>50-site pilot; threat model, ethics protocol, corpus plan; review deck</li>
+</ul>
+<h3>To do now (team actions)</h3>
+<ul class="checks todo">
+  <li>Submit the ethics protocol (<code>docs/ethics_protocol.md</code>); get the legal-cell note on IT Act s.43/66</li>
+  <li>Register a team email domain for canaries; set a team-owned phone number</li>
+  <li>Two people verify every India-list vendor (set <code>verified: true</code> with a source link)</li>
+  <li>Review the 69 unlisted domains from the pilot</li>
+  <li>Install Docker and test <code>docker compose up</code></li>
+</ul>
+<h3>Second half (planned)</h3>
+<ul class="checks plan">
+  <li>Research-grade ID graph: 300 hand-labelled links, calibrated confidence, communities tested against random networks and against company ownership</li>
+  <li>Security checks: outdated JavaScript libraries (retire.js, OSV), integrity checks on login/payment pages, CSP (MDN HTTP Observatory), abandoned script domains, script-change alerts</li>
+  <li>Full study: ~1,500 sites from CrUX India, 5 sectors, 200-site repeat runs, Blacklight comparison on 100 sites, real-site form tests after approval</li>
+  <li>Validated score with uncertainty range; sector statistics (Kruskal–Wallis, effect sizes, regression on popularity)</li>
+  <li>Evidence bundle download, sector dashboard, paper, dataset release, disclosures to sites and CERT-In</li>
+</ul>
+<h3>Future scope (beyond the project)</h3>
+<ul class="checks plan">
+  <li>A scheduled "watch" mode for site owners (alert when scripts change)</li>
+  <li>A browser extension view for ordinary users</li>
+  <li>Mobile apps (most Indian data flows through apps)</li>
+  <li>A second measurement wave after May 2027 to compare before and after DPDP enforcement</li>
+  <li>Other countries' sites for comparison</li>
+</ul>
+</section>
+
+<!-- =============================================================== 8 -->
+<section id="run">
+<h2>8. Running it</h2>
+<p>One-time setup (Windows, Python 3.11):</p>
+<pre>py -3.11 -m venv .venv
+.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m playwright install chromium
+.venv\Scripts\python -m tracemap lists fetch
+cd frontend &amp;&amp; npm install &amp;&amp; npm run build</pre>
+<p>For the demo, two terminals:</p>
+<pre>.venv\Scripts\python -m testbed
+.venv\Scripts\python -m tracemap serve --allow-local</pre>
+<p>Other commands: <code>python -m tracemap scan &lt;url&gt; --quick</code> (command-line scan), <code>python -m tracemap analyze</code> (re-analyse stored scans), <code>python -m tracemap pilot data/corpus/pilot_50.csv --quick --no-leak</code> (batch), <code>python -m pytest -q</code> (tests).</p>
+<div class="tablewrap"><table>
+<tr><th>Folder</th><th>What is in it</th><th>Owner</th></tr>
+<tr><td><code>tracemap/crawl/</code>, <code>testbed/</code></td><td>Crawler, browser hooks, cookie banners, test website</td><td>Kavya</td></tr>
+<tr><td><code>tracemap/detect/</code>, <code>data/lists/supplement/</code></td><td>Tracker lists, owners, behaviour flags, India list</td><td>Nityavardhan</td></tr>
+<tr><td><code>tracemap/leak/</code>, <code>tracemap/api/</code>, <code>frontend/</code></td><td>Leak test, server, web app</td><td>Kartik</td></tr>
+<tr><td><code>tracemap/collusion/</code>, <code>tracemap/measure/</code>, <code>findings.py</code></td><td>ID graph, pilot/study, findings</td><td>Krati</td></tr>
+<tr><td><code>docs/</code></td><td>Threat model, ethics protocol, corpus plan, pilot results, this guide</td><td>All</td></tr>
+</table></div>
+</section>
+
+<!-- =============================================================== 9 -->
+<section id="glossary">
+<h2>9. Glossary</h2>
+<dl class="defs">
+  <dt>Third party</dt><dd>Any domain other than the website's own registrable domain.</dd>
+  <dt>Tracker</dt><dd>A third party whose purpose is advertising, analytics, social tracking, session recording or fingerprinting, per public lists or blocking rules.</dd>
+  <dt>Registrable domain (eTLD+1)</dt><dd>The part of a hostname a company registers: <code>google-analytics.com</code> for <code>www.google-analytics.com</code>; <code>sbi.co.in</code> for <code>www.sbi.co.in</code>.</dd>
+  <dt>Canary</dt><dd>A unique fake value (email or phone) that, if seen elsewhere, proves where it went.</dd>
+  <dt>Hash (SHA-256, MD5)</dt><dd>A one-way fingerprint of a value. Ad platforms ask sites to send hashed emails so they can match people; a hash of your email still identifies you.</dd>
+  <dt>Cookie syncing</dt><dd>Companies passing a user ID between them (often through redirects) so they can join their profiles of you.</dd>
+  <dt>Fingerprinting</dt><dd>Identifying a device from its characteristics (how it draws text, its audio processing, graphics card) without cookies.</dd>
+  <dt>Session recording</dt><dd>A service that records clicks, scrolling and typing to replay a visit.</dd>
+  <dt>Consent banner (CMP)</dt><dd>The cookie pop-up asking you to accept or reject.</dd>
+  <dt>Bot wall</dt><dd>A page that blocks automated browsers ("Access Denied", "Just a moment").</dd>
+  <dt>DPDP Act</dt><dd>India's Digital Personal Data Protection Act 2023; Rules notified 13 Nov 2025.</dd>
+  <dt>PCI DSS 6.4.3 / 11.6.1</dt><dd>Card-industry rules requiring payment pages to inventory scripts and detect changes.</dd>
+</dl>
+</section>
+
+<footer>
+TraceMap · Kavya Jain, Nityavardhan Singh Hartala, Kartik Arora, Krati Dhenkawat · Screenshots are from the working app on 7 Oct 2026. Test-site results come from <code>tests/test_testbed_e2e.py</code>; pilot numbers from <code>var/pilot/pilot_50</code>.
+</footer>
+</main>
+</div>
