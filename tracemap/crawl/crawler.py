@@ -31,6 +31,16 @@ INSTRUMENT_JS = (Path(__file__).parent / "instrument.js").read_text(encoding="ut
 MOBILE_DEVICE = "Pixel 7"
 
 Progress = Callable[[dict], Awaitable[None] | None]
+CALL_TIMEOUT = 10.0  # seconds for any single in-page call; a frozen page must not stall the crawl
+
+
+async def bounded(aw, default=None, timeout: float = CALL_TIMEOUT):
+    """Await with a hard timeout. Playwright's evaluate/title/mouse calls have no timeout of their
+    own and hang forever on a page whose main thread is blocked."""
+    try:
+        return await asyncio.wait_for(aw, timeout)
+    except (asyncio.TimeoutError, PWError):
+        return default
 
 
 async def emit(progress: Progress | None, stage: str, message: str, **data) -> None:
@@ -118,30 +128,25 @@ class Visitor:
             if "Timeout" not in msg:
                 self.visit.pages.append(pv)
                 return pv
-        try:
-            await self.page.wait_for_load_state("networkidle", timeout=self.config.settle_ms)
-        except PWError:
-            pass
+        await bounded(self.page.wait_for_load_state("networkidle", timeout=self.config.settle_ms),
+                      timeout=self.config.settle_ms / 1000 + 5)
         if self.config.scroll:
-            await self._scroll()
-        await self.page.wait_for_timeout(self.config.dwell_ms)
+            await bounded(self._scroll(), timeout=CALL_TIMEOUT)
+        await asyncio.sleep(self.config.dwell_ms / 1000)
         pv.load_ms = int((time.time() - t0) * 1000)
         pv.final_url = self.page.url
-        try:
-            pv.title = (await self.page.title())[:300]
-            body = await self.page.evaluate("() => (document.body && document.body.innerText || '').slice(0, 5000)")
-        except PWError:
-            body = ""
+        pv.title = ((await bounded(self.page.title(), "")) or "")[:300]
+        body = await bounded(self.page.evaluate("() => (document.body && document.body.innerText || '').slice(0, 5000)"), "")
+        if pv.title == "" and body == "" and pv.status == "ok":
+            pv.error = "page did not respond to inspection (frozen main thread?)"
         reason = detect_block(pv.http_status, pv.title, body, [f.url for f in self.page.frames])
         if reason:
             pv.status, pv.block_reason = "blocked", reason
         if self.config.screenshot and index == 0 and self.store is not None:
-            try:
-                shot = await self.page.screenshot(type="jpeg", quality=60, timeout=5000)
+            shot = await bounded(self.page.screenshot(type="jpeg", quality=60, timeout=5000), timeout=8)
+            if shot:
                 pv.screenshot_sha256 = self.store.put_blob(shot)
-            except PWError:
-                pass
-        await self.harvest(index)
+        await bounded(self.harvest(index), timeout=30)
         self.visit.pages.append(pv)
         return pv
 
@@ -158,10 +163,7 @@ class Visitor:
         """Collect API calls, storage and inline scripts from every frame of the current page."""
         assert self.page
         for frame in self.page.frames:
-            try:
-                data = await frame.evaluate("() => window.__tm ? window.__tm.collect() : null")
-            except PWError:
-                data = None
+            data = await bounded(frame.evaluate("() => window.__tm ? window.__tm.collect() : null"), timeout=5)
             if data:
                 for c in data.get("calls", []):
                     key = (c["api"], c["script_url"])
@@ -174,25 +176,20 @@ class Visitor:
                                                  sample_args=c["sample_args"], page_index=index)
                 for jc in data.get("cookies", []):
                     self._js_cookie_setters.setdefault(jc["name"], jc["script"])
-            try:
-                st = await frame.evaluate("""() => {
+            st = await bounded(frame.evaluate("""() => {
                     const out = {origin: location.origin, local: [], session: []};
                     try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i);
                           out.local.push([k, String(localStorage.getItem(k)).slice(0, 2000)]); } } catch (e) {}
                     try { for (let i = 0; i < sessionStorage.length; i++) { const k = sessionStorage.key(i);
                           out.session.push([k, String(sessionStorage.getItem(k)).slice(0, 2000)]); } } catch (e) {}
-                    return out; }""")
+                    return out; }"""), timeout=5)
+            if st:
                 for kind in ("local", "session"):
                     for k, v in st[kind]:
                         self._storage[(st["origin"], k, kind)] = StorageItem(origin=st["origin"], key=k, value=v, kind=kind)
-            except PWError:
-                pass
         if self.store is not None:
-            try:
-                inline = await self.page.evaluate(
-                    "() => Array.from(document.scripts).filter(s => !s.src).map(s => s.textContent || '')")
-            except PWError:
-                inline = []
+            inline = await bounded(self.page.evaluate(
+                "() => Array.from(document.scripts).filter(s => !s.src).map(s => s.textContent || '')"), [], timeout=5)
             for i, text in enumerate(inline):
                 if text.strip():
                     data = text.encode("utf-8", "replace")
@@ -206,13 +203,10 @@ class Visitor:
         self.visit.scripts = self.cap.scripts + self.visit.scripts
         self.visit.api_calls = list(self._api.values())
         self.visit.storage = list(self._storage.values())
-        self.visit.cookies = await self._cookies()
+        self.visit.cookies = await bounded(self._cookies(), [], timeout=15)
         self.visit.consent = self.bridge.info.model_copy(deep=True)
         self.visit.finished_at = time.time()
-        try:
-            await self.page.close()
-        except PWError:
-            pass
+        await bounded(self.page.close(), timeout=10)
         return self.visit
 
     async def _cookies(self) -> list[Cookie]:
@@ -255,10 +249,7 @@ async def visit_pages(visitor: Visitor, urls: list[str], progress: Progress | No
             await emit(progress, "crawl", f"[{visitor.profile}] blocked: {pv.block_reason}", level="warn")
             break
         if i == 0 and choose_from_landing and pv.status in ("ok", "timeout"):
-            try:
-                hrefs = await visitor.page.eval_on_selector_all("a[href]", "els => els.map(e => e.href)")
-            except PWError:
-                hrefs = []
+            hrefs = await bounded(visitor.page.eval_on_selector_all("a[href]", "els => els.map(e => e.href)"), [])
             subs = choose_subpages(pv.final_url or url, hrefs, choose_from_landing, etld1(pv.final_url or url))
             urls += subs
             await emit(progress, "crawl", f"chose {len(subs)} subpages", subpages=subs)

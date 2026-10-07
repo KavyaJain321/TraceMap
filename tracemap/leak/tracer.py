@@ -9,6 +9,7 @@ Ethics guarantees enforced in code:
 
 from __future__ import annotations
 
+import asyncio
 import random
 import time
 from typing import TYPE_CHECKING
@@ -18,7 +19,7 @@ from playwright.async_api import Error as PWError
 from ..config import CrawlConfig
 from ..contracts import Canary, FieldFilled, LeakEvent, LeakReport, Visit
 from ..util.domains import etld1, hostname
-from ..crawl.crawler import Progress, Visitor, emit, new_context
+from ..crawl.crawler import Progress, Visitor, bounded, emit, new_context
 from .canary import make_email, make_phone
 from .encodings import CanaryPool
 from .fields import FIND_FIELDS_JS, FORM_LINKS_JS, NO_SUBMIT_JS
@@ -66,16 +67,13 @@ async def run_leak_test(pw: "Playwright", browser: "Browser", site: str, landing
                 report.notes.append(f"blocked on {url}")
                 break
             if i == 0:
-                try:
-                    links = await visitor.page.evaluate(FORM_LINKS_JS)
-                except PWError:
-                    links = []
+                links = await bounded(visitor.page.evaluate(FORM_LINKS_JS), [])
                 queue += [u for u in links if etld1(u) == site and u not in queue][: max_pages - 1]
             filled = await _fill_page(visitor, by_kind, report, max_fields_per_page, progress)
             if filled:
                 form_pages += 1
-                await visitor.page.wait_for_timeout(4000)  # let beacons / batched recorders fire
-                await visitor.harvest(i)
+                await asyncio.sleep(4)  # let beacons / batched recorders fire
+                await bounded(visitor.harvest(i), timeout=30)
             i += 1
         if not report.fields:
             report.notes.append("No email/phone fields found on the pages tried.")
@@ -90,10 +88,7 @@ async def _fill_page(visitor: Visitor, by_kind: dict[str, Canary | None], report
     page = visitor.page
     filled = 0
     for frame in list(page.frames):
-        try:
-            fields = await frame.evaluate(FIND_FIELDS_JS)
-        except PWError:
-            continue
+        fields = await bounded(frame.evaluate(FIND_FIELDS_JS), [])
         for f in fields:
             if filled >= max_fields:
                 return filled
@@ -120,7 +115,7 @@ async def _fill_page(visitor: Visitor, by_kind: dict[str, Canary | None], report
             await emit(progress, "leak", f"[L] typed test {canary.kind} into '{f['desc'][:40]}'"
                                          + (" (inside an iframe)" if frame != page.main_frame else ""),
                        kind=canary.kind)
-            await page.wait_for_timeout(600)
+            await asyncio.sleep(0.6)
     return filled
 
 
@@ -184,6 +179,7 @@ def match_leaks(visit: Visit, report: LeakReport, site: str, classifier: "Classi
                                request_id=r.request_id, request_url=r.url[:600],
                                ms_after_typing=ms, first_party=first_party, confidence=conf)
                 key = (cid, rdom, channel, enc)
-                if key not in best or best[key].ms_after_typing > ms:
-                    best[key] = ev
+                prev = best.get(key)
+                if prev is None or (prev.field_typed_at or 0) + prev.ms_after_typing / 1000 > req_time:
+                    best[key] = ev  # keep the earliest occurrence in absolute time
     return sorted(best.values(), key=lambda e: (e.first_party, e.ms_after_typing))

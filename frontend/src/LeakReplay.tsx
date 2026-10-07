@@ -3,6 +3,11 @@ import { LeakEvent, ScanResult, who } from './api';
 
 const W = 1000, LEFT = 190, RIGHT = 30, TOP = 46, LANE = 58;
 
+function encLabel(enc: string) {
+  const base = enc.split(' inside ')[0];
+  return base.includes('(') ? enc : 'as typed' + (enc.includes(' inside ') ? ' (inside encoded payload)' : '');
+}
+
 function prefersReducedMotion() {
   return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
@@ -60,6 +65,7 @@ export default function LeakReplay({ r, onPick }: { r: ScanResult; onPick: (e: L
   if (!model) return <div className="empty">No email or phone field was found to type into. {notes.join(' ')}</div>;
 
   const { hits, recipients, typed, tmax } = model;
+  const labelEnds = new Map<number, [number, number, number][]>();
   const H = TOP + LANE * (recipients.length + 1) + 24;
   const x = (t: number) => LEFT + (t / tmax) * (W - LEFT - RIGHT);
   const laneY = (i: number) => TOP + LANE * i + LANE / 2;
@@ -125,7 +131,20 @@ export default function LeakReplay({ r, onPick }: { r: ScanResult; onPick: (e: L
                    onClick={() => onPick(e)} onKeyDown={(k) => { if (k.key === 'Enter' || k.key === ' ') { k.preventDefault(); onPick(e); } }}>
                   <title>{label}</title>
                   <circle cx={x2} cy={y2} r={8} />
-                  <text className="lane-sub" x={x2 + 12} y={y2 + 4}>{e.kind} · {e.encoding.split(' inside ')[0]}</text>
+                  {(() => {
+                    // Place the label right of the dot, else left, else below; skip it if all collide (tooltip remains).
+                    const text = `${e.kind} · ${encLabel(e.encoding)}`;
+                    const w = text.length * 6.6 + 8;
+                    const taken = labelEnds.get(lane) ?? [];
+                    const free = (a: number, b: number, row: number) => taken.every(([l, r, rr]) => rr !== row || b < l || a > r);
+                    const options: [number, number, 'start' | 'end', number][] = [
+                      [x2 + 12, x2 + 12 + w, 'start', 0], [x2 - 12 - w, x2 - 12, 'end', 0], [x2 - w / 2, x2 + w / 2, 'start', 1]];
+                    const pick = options.find(([a, b, , row]) => a >= LEFT - 4 && b <= W && free(a, b, row));
+                    if (!pick) return null;
+                    taken.push([pick[0], pick[1], pick[3]]); labelEnds.set(lane, taken);
+                    const tx = pick[2] === 'end' ? pick[1] : pick[0];
+                    return <text className="lane-sub" x={tx} y={pick[3] ? y2 + 24 : y2 + 4} textAnchor={pick[2]}>{text}</text>;
+                  })()}
                 </g>
               </g>
             );
@@ -153,7 +172,7 @@ export default function LeakReplay({ r, onPick }: { r: ScanResult; onPick: (e: L
                   <td className="num">{(e.ms_after_typing / 1000).toFixed(1)}s</td>
                   <td>{who(e.recipient_owner, e.recipient_domain)}<div className="faint mono">{e.recipient_host}</div></td>
                   <td>{e.kind === 'email' ? 'Email' : 'Phone'}</td>
-                  <td className="mono">{e.encoding}</td>
+                  <td className="mono">{encLabel(e.encoding)}</td>
                   <td>{e.channel.replace('_', ' ')}</td>
                   <td><button className="btn ghost small" onClick={() => onPick(e)}>Proof</button></td>
                 </tr>

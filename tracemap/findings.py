@@ -101,7 +101,23 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
 
     # --- identifier sharing
     shared = [e for e in graph.edges if e.kind == "shared_id" and site not in (e.a, e.b)]
-    for e in sorted(shared, key=lambda e: -e.confidence):
+    same_company = [e for e in shared if e.same_entity]
+    if same_company:
+        owners = sorted({info[e.a].owner for e in same_company if e.a in info and info[e.a].owner})
+        out.append(Finding(severity="info", code="ID_SHARING_SAME_COMPANY",
+                           title=f"{len(same_company)} identifier link{'s' if len(same_company) != 1 else ''} stayed within one company "
+                                 f"({', '.join(owners[:4])}{'…' if len(owners) > 4 else ''}).",
+                           detail="Expected when one company runs several domains; shown on the ID-sharing map, not counted as cross-company sharing.",
+                           request_ids=[r for e in same_company for r in e.request_ids][:10]))
+    cross = sorted((e for e in shared if not e.same_entity), key=lambda e: -e.confidence)
+    unconfirmed = [e for e in cross if e.confidence < 0.6]
+    if len(unconfirmed) > 5:
+        rest = unconfirmed[5:]
+        cross = [e for e in cross if e not in rest]
+        out.append(Finding(severity="low", code="ID_SHARING_POSSIBLE",
+                           title=f"{len(rest)} more possible identifier links between companies (unconfirmed).",
+                           detail="See the ID-sharing map. Run a thorough scan (two separate visitors) to confirm or rule them out."))
+    for e in cross:
         a, b = info.get(e.a), info.get(e.b)
         note = " (same company)" if e.same_entity else ""
         confirmed = e.confidence >= 0.6  # passed the two-visitor (A/B/A2) test
@@ -159,6 +175,6 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
     summary = ScanSummary(
         pages_visited=len(a.pages) if a else 0, requests=sum(len(v.requests) for v in record.visits),
         third_parties=len(third), trackers=len(trackers), companies=len(owners), tracking_cookies=tracking_cookies,
-        leaks=len(third_leaks), leak_recipients=len(by_recipient), shared_id_edges=len(shared),
+        leaks=len(third_leaks), leak_recipients=len(by_recipient), shared_id_edges=len([e for e in shared if not e.same_entity]),
         risky_scripts=len([s for s in scripts if s.domain != site]), blocked=blocked, consent_banner=banner)
     return out, summary

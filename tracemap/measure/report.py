@@ -33,6 +33,11 @@ def build_report(run_dir: Path, store: Store) -> dict:
         res = store.load_doc(r["scan_id"], "result", ScanResult) if r.get("scan_id") else None
         if res is not None:
             results[r["scan_id"]] = res
+            if res.status == "done":  # live numbers: reflect the latest `tracemap analyze`
+                s = res.summary
+                r = {**r, "third_parties": s.third_parties, "trackers": s.trackers, "companies": s.companies,
+                     "shared_id_edges": s.shared_id_edges, "consent_banner": str(s.consent_banner),
+                     "blocked": str(s.blocked), "leaks": s.leaks}
         sites.append({
             "url": r["url"], "name": r.get("name") or "", "sector": r["sector"], "scan_id": r["scan_id"],
             "status": "blocked" if r["blocked"] == "True" else ("done" if r["status"] == "done" else "error"),

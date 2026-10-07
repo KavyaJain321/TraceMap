@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
 import traceback
 
@@ -94,7 +95,13 @@ async def run_scan(url: str, store: Store, *, mode: str = "full", leak_test: boo
 
     try:
         await emit(prog, "start", f"Scanning {url} ({mode} mode, {device}, consent={consent_mode})", pct=2)
-        record = await crawl(url, config, store, prog, crawl_id=scan_id, after_profiles=leak_hook)
+        # Hard budget so one unresponsive site can never stall a batch run.
+        budget = 240 + 120 * (len(config.profiles) - 1) + (150 if leak_test else 0)
+        try:
+            record = await asyncio.wait_for(
+                crawl(url, config, store, prog, crawl_id=scan_id, after_profiles=leak_hook), budget)
+        except asyncio.TimeoutError:
+            raise TimeoutError(f"site did not finish within the {budget}s time budget (unresponsive page)")
         result.site = record.site
         store.save_doc(scan_id, "crawl", record)
         await emit(prog, "detect", "Classifying third parties", pct=80)
