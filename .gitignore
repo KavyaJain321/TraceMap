@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Runtime data (scans, blobs, sqlite index)
+var/
+
+# Fetched tracker lists are third-party licensed (CC BY-NC-SA / GPL): fetch, don't commit.
+data/lists/*.json
+data/lists/*.txt
+!data/lists/manifest.json
+!data/lists/supplement/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+data/lists/nc-sa/

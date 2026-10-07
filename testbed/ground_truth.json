@@ -1,0 +1,27 @@
+{
+  "_comment": "Everything planted in testbed/server.py. Detectors are scored against this file.",
+  "shop.localhost": {
+    "third_parties": [
+      "adnet-a.localhost", "broker-b.localhost", "analytics-c.localhost",
+      "leaky-d.localhost", "replay-f.localhost", "widget-g.localhost"
+    ],
+    "leaks": [
+      {"recipient": "leaky-d.localhost", "kind": "email", "encoding_contains": "sha256"},
+      {"recipient": "leaky-d.localhost", "kind": "phone", "encoding_contains": "base64"},
+      {"recipient": "replay-f.localhost", "kind": "email", "encoding_contains": "plain"},
+      {"recipient": "replay-f.localhost", "kind": "phone", "encoding_contains": "plain"},
+      {"recipient": "widget-g.localhost", "kind": "email", "encoding_contains": "base64"}
+    ],
+    "first_party_only": ["shop.localhost"],
+    "shared_id_pairs": [["adnet-a.localhost", "broker-b.localhost"]],
+    "fingerprinting": {"analytics-c.localhost": ["canvas_fp", "audio_fp"]},
+    "reads_form": ["leaky-d.localhost", "replay-f.localhost"]
+  },
+  "clean.localhost": {
+    "third_parties": [],
+    "leaks": []
+  },
+  "blocked.localhost": {
+    "blocked": true
+  }
+}

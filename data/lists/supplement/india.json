@@ -1,0 +1,28 @@
+{
+  "_about": "TraceMap India tracker supplement v0. Team-authored seed of Indian martech/adtech vendors that global lists under-cover. Every entry is UNVERIFIED until two coders confirm domain ownership from the vendor's own docs/SDK snippets; set verified=true and add a source URL when done. License: CC BY 4.0 (team's own observations only; nothing copied from NC-SA lists).",
+  "version": "0.1",
+  "entities": {
+    "CleverTap": {"country": "IN", "category": "analytics", "domains": ["clevertap.com", "wzrkt.com", "clevertap-prod.com"], "verified": false},
+    "MoEngage": {"country": "IN", "category": "analytics", "domains": ["moengage.com", "moengage.net"], "verified": false},
+    "WebEngage": {"country": "IN", "category": "analytics", "domains": ["webengage.com", "webengage.co"], "verified": false},
+    "Netcore Cloud": {"country": "IN", "category": "analytics", "domains": ["netcoresmartech.com", "netcorecloud.net", "netcorecloud.com", "pepipost.com"], "verified": false},
+    "iZooto": {"country": "IN", "category": "ad", "domains": ["izooto.com"], "verified": false},
+    "Times Internet (Colombia)": {"country": "IN", "category": "ad", "domains": ["clmbtech.com", "colombiaonline.com"], "verified": false},
+    "InMobi": {"country": "IN", "category": "ad", "domains": ["inmobi.com", "inmobicdn.net"], "verified": false},
+    "Affle": {"country": "IN", "category": "ad", "domains": ["affle.com", "mediasmart.io"], "verified": false},
+    "Vizury": {"country": "IN", "category": "ad", "domains": ["vizury.com"], "verified": false},
+    "Tyroo": {"country": "IN", "category": "ad", "domains": ["tyroo.com"], "verified": false},
+    "Wingify (VWO)": {"country": "IN", "category": "analytics", "domains": ["visualwebsiteoptimizer.com", "vwo.com", "wingify.com"], "verified": false},
+    "Apxor": {"country": "IN", "category": "analytics", "domains": ["apxor.com"], "verified": false},
+    "Haptik": {"country": "IN", "category": "functional", "domains": ["haptik.ai", "haptikapi.com"], "verified": false},
+    "Plumb5": {"country": "IN", "category": "analytics", "domains": ["plumb5.com"], "verified": false},
+    "Zoho": {"country": "IN", "category": "functional", "domains": ["zoho.com", "zohopublic.com", "zohocdn.com", "zohostatic.com"], "verified": false},
+    "Freshworks": {"country": "IN", "category": "functional", "domains": ["freshworks.com", "freshchat.com", "freshdesk.com", "freshmarketer.com"], "verified": false},
+    "Razorpay": {"country": "IN", "category": "functional", "domains": ["razorpay.com"], "verified": false},
+    "Paytm": {"country": "IN", "category": "functional", "domains": ["paytm.com", "paytm.in"], "verified": false},
+    "Juspay": {"country": "IN", "category": "functional", "domains": ["juspay.in"], "verified": false},
+    "Cashfree": {"country": "IN", "category": "functional", "domains": ["cashfree.com"], "verified": false},
+    "mFilterIt": {"country": "IN", "category": "functional", "domains": ["mfilterit.com"], "verified": false},
+    "Capillary": {"country": "IN", "category": "analytics", "domains": ["capillarytech.com"], "verified": false}
+  }
+}
