@@ -1,4 +1,4 @@
-# TraceMap: Build Plan (revised 2026-10-07)
+﻿# TraceMap: Build Plan (revised 2026-10-07)
 
 > Read `CONTEXT.md` first. This revision applies the panel review (`PANEL_REVIEW.md`) and the
 > open-source reuse research (`reports/TraceMap open source reuse plan.md`). The project is
@@ -19,7 +19,7 @@
 ## Repository layout (as built)
 
 See `README.md#layout`. Data contracts live in `tracemap/contracts.py`
-(CrawlRecord → DetectedParty / RiskyScript → SiteGraph / CollusionEdge → LeakReport / LeakEvent → ScanResult).
+(CrawlRecord â†’ DetectedParty / RiskyScript â†’ SiteGraph / CollusionEdge â†’ LeakReport / LeakEvent â†’ ScanResult).
 Changes vs the original contracts: per-profile `Visit`s (A, B, A2, L), `post_data`, initiator
 stacks, `APICall` log, cookie setter attribution, `PageVisit.status` (blocked/timeout), leak
 `matched`/`where`/`field_typed_at` for the proof view, `RiskResult.score = None` until validated.
@@ -37,7 +37,7 @@ stacks, `APICall` log, cookie setter attribution, `PageVisit.status` (blocked/ti
 | 3 | Leak tracer v1: field finder (incl. iframes), canary typing with no-submit guard, 3-layer encoding/hash pool (~48k variants), source-field attribution | **Done** | Kartik |
 | 4 | UI: scan + live progress, case file (stamp, ledger, findings + proof drawer), leak replay, ID-sharing map, companies table; FastAPI with SSE + SSRF guard | **Done** | Kartik + Kavya |
 | 4b | Basic per-site graph: inclusion, redirects, shared-ID edges with A/B/A2 confirmation | **Done** | Krati |
-| 5 | Pilot: `data/corpus/pilot_50.csv`, `python -m tracemap pilot` | **Runner done; run after ethics approval** (passive `--no-leak` run is fine before) | Krati + all |
+| 5 | Pilot: `data/corpus/pilot_50.csv`, `python -m tracemap pilot` | **Done (passive run, 49/50 sites; see `docs/pilot_results.md`)**. Form-test pilot after ethics approval | Krati + all |
 
 **Mid-review demo:** see `README.md#mid-semester-demo-script`.
 
@@ -55,10 +55,10 @@ stacks, `APICall` log, cookie setter attribution, `PageVisit.status` (blocked/ti
 
 | # | Phase | Owner |
 |---|---|---|
-| 6 | **ID-flow graph, research grade:** 300 hand-labelled candidate edges (2 coders, κ) → calibrated logistic-regression edge confidence; corpus-level graph; Leiden (graspologic-native, MIT) with 100 seeds + consensus; configuration-model nulls (z-score); NMI vs ownership partition (tests Bashir & Wilson 2018) | Krati |
+| 6 | **ID-flow graph, research grade:** 300 hand-labelled candidate edges (2 coders, Îº) â†’ calibrated logistic-regression edge confidence; corpus-level graph; Leiden (graspologic-native, MIT) with 100 seeds + consensus; configuration-model nulls (z-score); NMI vs ownership partition (tests Bashir & Wilson 2018) | Krati |
 | 7 | **Security checks:** retire.js repository + OSV.dev API (vulnerable JS libs); SRI on login/payment pages; CSP via MDN HTTP Observatory (npx); dangling script domains (whoisit/RDAP, passive only); `tracemap diff` script-inventory change detection (PCI DSS 6.4.3/11.6.1) | Nityavardhan |
-| 8 | **Full study:** ~1,500 sites from CrUX India stratified by sector (see `docs/corpus.md`); 200-site × 3 repeat stability subset; Blacklight-collector cross-check on 100 sites | Kavya + all |
-| 9 | **Score + statistics:** transparent points scorecard (4 subscores) with Monte-Carlo/SALib sensitivity interval; expert ranking of 30 sites (3 raters, Krippendorff α); EBM leak-risk model trained on canary-verified labels; Kruskal-Wallis + Dunn (Holm), ε², Cliff's δ, negative-binomial GLM with popularity bucket | Krati + Kartik |
+| 8 | **Full study:** ~1,500 sites from CrUX India stratified by sector (see `docs/corpus.md`); 200-site Ã— 3 repeat stability subset; Blacklight-collector cross-check on 100 sites | Kavya + all |
+| 9 | **Score + statistics:** transparent points scorecard (4 subscores) with Monte-Carlo/SALib sensitivity interval; expert ranking of 30 sites (3 raters, Krippendorff Î±); EBM leak-risk model trained on canary-verified labels; Kruskal-Wallis + Dunn (Holm), ÎµÂ², Cliff's Î´, negative-binomial GLM with popularity bucket | Krati + Kartik |
 | 10 | **Full UI:** security panel, sector dashboard, evidence bundle (HAR + screenshots + JSON + SHA-256 manifest via bagit) | Kartik + Kavya |
 | 11 | **Finish:** paper, dataset release (CC BY-NC-SA where list-derived), India supplement PRs upstream, responsible disclosure (sites + CERT-In, 45-day embargo) | All |
 
@@ -67,13 +67,13 @@ stacks, `APICall` log, cookie setter attribution, `PageVisit.status` (blocked/ti
 | Component | Ground truth | Metric |
 |---|---|---|
 | Instrumentation & leak tracer | testbed + negative-control canaries + mail received at canary domain + Blacklight agreement | precision / recall, false-positive rate |
-| Third-party classification | 2-coder labels on unknown domains | coverage gain vs list-only, κ |
+| Third-party classification | 2-coder labels on unknown domains | coverage gain vs list-only, Îº |
 | ID edges | 300 labelled edges | precision/recall, Brier, reliability diagram |
 | Communities | rewired nulls, ownership partition | Q z-score, NMI, seed ARI |
-| Score | expert ranking, repeat crawls | Krippendorff α, Kendall τ, ICC, rank shift under weight perturbation |
-| Sector comparison | — | effect sizes with BCa CIs, NB-GLM coefficients |
+| Score | expert ranking, repeat crawls | Krippendorff Î±, Kendall Ï„, ICC, rank shift under weight perturbation |
+| Sector comparison | â€” | effect sizes with BCa CIs, NB-GLM coefficients |
 
 ## Definition of done (whole project)
-- `python -m tracemap serve` (and `docker compose up`) gives scan → case file with leaks, ID map, findings, proof.
+- `python -m tracemap serve` (and `docker compose up`) gives scan â†’ case file with leaks, ID map, findings, proof.
 - The study pipeline outputs a dataset + statistics + baseline comparison for ~1,500 Indian sites.
 - Tests pass on the testbed ground truth; limitations stated in the UI and the paper.
