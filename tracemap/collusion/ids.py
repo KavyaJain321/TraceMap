@@ -124,6 +124,8 @@ def sightings(visit: Visit, site: str) -> list[Sighting]:
         holder = etld1(c.domain.lstrip("."))
         add(c.value, f"{holder}|jar:{c.name}", holder, "cookie_jar")
     for s in visit.storage:
+        if not s.origin.startswith("http"):
+            continue  # opaque origin ("null", sandboxed iframe): cannot be attributed to any company
         holder = etld1(s.origin)
         add(s.value, f"{holder}|{s.kind}:{s.key}", holder, "storage")
     return out

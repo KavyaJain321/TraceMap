@@ -103,10 +103,10 @@ def build_findings(record: CrawlRecord, parties: list[DetectedParty], scripts: l
     shared = [e for e in graph.edges if e.kind == "shared_id" and site not in (e.a, e.b)]
     same_company = [e for e in shared if e.same_entity]
     if same_company:
-        owners = sorted({info[e.a].owner for e in same_company if e.a in info and info[e.a].owner})
+        same_owners = sorted({info[e.a].owner for e in same_company if e.a in info and info[e.a].owner})
         out.append(Finding(severity="info", code="ID_SHARING_SAME_COMPANY",
                            title=f"{len(same_company)} identifier link{'s' if len(same_company) != 1 else ''} stayed within one company "
-                                 f"({', '.join(owners[:4])}{'…' if len(owners) > 4 else ''}).",
+                                 f"({', '.join(same_owners[:4])}{'…' if len(same_owners) > 4 else ''}).",
                            detail="Expected when one company runs several domains; shown on the ID-sharing map, not counted as cross-company sharing.",
                            request_ids=[r for e in same_company for r in e.request_ids][:10]))
     cross = sorted((e for e in shared if not e.same_entity), key=lambda e: -e.confidence)
