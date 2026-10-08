@@ -132,11 +132,12 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
     <li><a href="#how">2. How it works</a></li>
     <li><a href="#screens">3. Every screen explained</a></li>
     <li><a href="#verify">4. Is it correct?</a></li>
-    <li><a href="#pilot">5. Pilot results</a></li>
-    <li><a href="#panel">6. Presenting to the panel</a></li>
-    <li><a href="#status">7. Done, to do, future</a></li>
-    <li><a href="#run">8. Running it</a></li>
-    <li><a href="#glossary">9. Glossary</a></li>
+    <li><a href="#upes">5. Walkthrough: our college site</a></li>
+    <li><a href="#pilot">6. Pilot results</a></li>
+    <li><a href="#panel">7. Presenting to the panel</a></li>
+    <li><a href="#status">8. Done, to do, future</a></li>
+    <li><a href="#run">9. Running it</a></li>
+    <li><a href="#glossary">10. Glossary</a></li>
   </ol>
 </nav>
 
@@ -144,8 +145,8 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 <header>
   <p class="eyebrow">Team guide · mid-semester review</p>
   <h1>TraceMap Team Guide</h1>
-  <p class="lede">What we built, every screen and number explained, where each number comes from, how sure we are of it, and what is left. Read sections 1, 4 and 6 before the review.</p>
-  <div class="meta"><span>Written 7 Oct 2026</span><span>Code: first half complete, 44 automated tests passing</span><span>Pilot: 49 of 50 Indian sites scanned</span></div>
+  <p class="lede">What we built, every screen and number explained, where each number comes from, how sure we are of it, and what is left. Read sections 1, 4, 5 and 7 before the review.</p>
+  <div class="meta"><span>Written 7 Oct 2026, updated 8 Oct</span><span>Code: first half complete, 44 automated tests passing</span><span>Pilot: 49 of 50 Indian sites scanned</span></div>
   <div class="stamp">First half: built and tested</div>
 </header>
 
@@ -370,7 +371,7 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 <tr><td>Third party vs the site's own</td><td>Registrable domain from the Public Suffix List (pinned snapshot)</td><td>Test site 6/6; unit tests on .co.in, .gov.in and .sbi domains</td><td><span class="pill v">Verified</span></td></tr>
 <tr><td>Company names and types</td><td>4 public datasets + 4 filter lists + our India list</td><td>Spot checks (Google Analytics → Google/analytics; Hotjar → session recording; CleverTap, MoEngage resolved)</td><td><span class="pill n">From public lists</span></td></tr>
 <tr><td>India vendor labels</td><td>Team-written list (23 vendors)</td><td>Not yet checked against vendor docs</td><td><span class="pill h">Not yet</span> 2-coder check</td></tr>
-<tr><td>Form leaks</td><td>Unique canary + 48k disguises</td><td>Test site 5/5, 0 wrong recipients, negative control 0</td><td><span class="pill p">Partly verified</span> real sites wait for ethics</td></tr>
+<tr><td>Form leaks</td><td>Unique canary + 48k disguises</td><td>Test site 5/5, 0 wrong recipients, negative control 0</td><td><span class="pill p">Partly verified</span> real-site study waits for ethics (one demo on upes.ac.in, section 5)</td></tr>
 <tr><td>Fingerprinting flags</td><td>Published rules over browser API use</td><td>Test site 1/1</td><td><span class="pill p">Partly verified</span> 200 hand-labelled scripts planned</td></tr>
 <tr><td>Session recording</td><td>List labels</td><td>Known vendors (FullStory, Hotjar...)</td><td><span class="pill n">From public lists</span> capability only</td></tr>
 <tr><td>Confirmed ID sharing</td><td>A/B/A2 rule</td><td>Test site: real IDs confirmed, timestamps and page names rejected</td><td><span class="pill p">Partly verified</span> 300 hand-labelled links planned</td></tr>
@@ -381,15 +382,74 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 </table></div>
 
 <div class="callout warn">
-<p><b>Limits we always state.</b> TraceMap sees only what happens in the browser. Data shared later between company servers is invisible, so every number is a minimum. We only test public pages (no logins). An ID link is evidence of sharing, not proof of intent. Form tests on real sites have not been run yet; they wait for ethics approval.</p>
+<p><b>Limits we always state.</b> TraceMap sees only what happens in the browser. Data shared later between company servers is invisible, so every number is a minimum. We only test public pages (no logins). An ID link is evidence of sharing, not proof of intent. Form tests on real sites wait for ethics approval; the only exception is one demo on our own university's site (section 5), nothing submitted.</p>
 </div>
 </section>
 
 <!-- =============================================================== 5 -->
+<section id="upes">
+<h2>5. Walkthrough: our college site</h2>
+<p>A real example to explain to the panel: a thorough scan of <code>upes.ac.in</code> on 8 Oct 2026 (phone, cookie banner left untouched, form test on). It covers what happened at each step, how sure we are, and whether the site or the companies are responsible.</p>
+<figure><img src="img/upes_case.png" alt="Case file for upes.ac.in: stamp reading No leak seen, 33 other domains, 26 tracking domains, 17 companies, 0 received your test details, 2 ID exchanges between companies, no cookie banner" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 9</b>The upes.ac.in case file.</figcaption></figure>
+<div class="tablewrap"><table>
+<tr><th>Number on screen</th><th class="num">Value</th><th>What it means</th></tr>
+<tr><td>Pages visited / requests recorded</td><td class="num">5 / 3,346</td><td>Home page and inner pages, across all visitors</td></tr>
+<tr><td>Other domains</td><td class="num">33</td><td>Outside domains the pages contacted</td></tr>
+<tr><td>Tracking domains</td><td class="num">26</td><td>Of those, the ones the public lists call ad, analytics or social trackers (13 tracking companies: Adobe, Ahrefs, Cisco, Facebook, Google, Microsoft, Quora, Reddit, Snap, Tapad, WebEngage and others)</td></tr>
+<tr><td>Companies</td><td class="num">17</td><td>Owners of all 33 outside domains, including non-tracking ones such as Zoho and Microsoft's Azure CDN</td></tr>
+<tr><td>Received your test details</td><td class="num">0</td><td>No outside company received the fake email</td></tr>
+<tr><td>ID exchanges between companies</td><td class="num">2</td><td>Snapchat ↔ Tapad, and Facebook → on.aws, both confirmed by the two-visitor check</td></tr>
+<tr><td>Cookie banner</td><td class="num">No</td><td>None detected</td></tr>
+</table></div>
+
+<h3>What happened in the background, step by step</h3>
+<div class="tablewrap"><table>
+<tr><th>Step</th><th>What TraceMap did (plain terms)</th><th>What it found on upes.ac.in</th></tr>
+<tr><td>1. Open and record</td><td>Opened the site in real Google Chrome set up like a phone and recorded every request the page made to any server. This is the same list Chrome shows under F12 → Network; we save it instead of only showing it.</td><td>3,346 requests over 5 pages</td></tr>
+<tr><td>2. Visit as different people</td><td>Visitor A, then visitor B (a completely fresh browser, a different "person"), then A again. Comparing the three is how we tell a personal ID from ordinary data.</td><td>All three visits completed; no bot check</td></tr>
+<tr><td>3. Name every outside server</td><td>Looked up each outside domain in 6 public tracker lists plus our India list. The Companies tab shows which lists agreed.</td><td>26 of 33 outside domains are trackers. doubleclick.net (Google ads) is on 7 of 7 lists; only <code>zohopublic.in</code> is on none</td></tr>
+<tr><td>4. Find shared IDs</td><td>An ID is a value that is the same for A and A-again but different for B (the rule from the 2016 Princeton million-site study). If the same ID reaches two different companies, they exchanged it.</td><td>Snapchat → Tapad by redirect (80%); Facebook → on.aws in a POST body (90%); 11 more links within one company (Google↔Google etc.), shown as a note</td></tr>
+<tr><td>5. Leak test</td><td>Typed a made-up email (<code>tm.…@example.com</code>) into the contact and admission forms, <b>never pressed Submit</b>, then searched all traffic for it in ~48,000 disguises (encoded, hashed).</td><td>The email reached only <code>admission.upes.ac.in</code>, 3.2 s after typing, at <code>/Home/checkdataexistsemailnew</code>: UPES's own server checking whether the email is already registered. Same organisation, so not a leak. No outside company received it.</td></tr>
+<tr><td>6. Watch scripts</td><td>Watched browser functions such as "read a text box", "listen to keys" and "read device details", and recorded which script used them.</td><td>Microsoft Clarity, Adobe Bizible, Google Tag Manager and the Facebook pixel read the form fields: <i>had access</i>, no sending seen</td></tr>
+<tr><td>7. Cookie banner</td><td>DuckDuckGo's public banner rules</td><td>No banner found</td></tr>
+<tr><td>8. Write findings with proof</td><td>Each finding links to the saved requests behind it; stored files are fingerprinted (SHA-256) so they can be shown unchanged.</td><td>13 findings, each with <b>Show proof</b></td></tr>
+</table></div>
+<div class="callout warn">
+<p><b>Form test on a real site.</b> Our ethics protocol says real-site form tests wait for approval. This scan typed the fake email into our own university's public forms as a one-off demo; nothing was submitted and no phone number was typed (no team number is set yet). Say this openly if asked.</p>
+</div>
+
+<h3>How we know it is correct</h3>
+<ol>
+  <li><b>Anyone can check it in two minutes.</b> Open upes.ac.in in normal Chrome, press F12, open the Network tab, reload, and type <code>snapchat</code>, <code>facebook</code>, <code>clarity</code> or <code>doubleclick</code> in the filter box. The same requests appear. We do not guess; we record what the browser actually sends. <b>Do this live if the panel doubts a number.</b></li>
+  <li><b>It finds the answers on a site where we know them.</b> The test shop (section 4) has planted trackers, leaks and an ID sync plus decoys, and automated tests check TraceMap against them.</li>
+  <li><b>Names come from public lists, not from us.</b> The Companies tab shows how many lists agree on each domain.</li>
+  <li><b>Confidence and limits are stated.</b> ID links confirmed by two visitors show 80–90%; weaker ones are marked unconfirmed. We only see what leaves the browser, so every number is a minimum, never an exaggeration.</li>
+</ol>
+<figure><img src="img/upes_proof.png" alt="Proof drawer for Snapchat and Tapad exchanging an identifier: a GET request to tr.snapchat.com/cm/p with a pcid value, sent by sc-static.net/scevent.min.js on the UPES home page, visitor A" loading="lazy" width="2160" height="1350"><figcaption><b>FIG 10</b>Proof for "snapchat.com and tapad.com exchanged an identifier". The Snapchat script on the UPES page calls <code>tr.snapchat.com/cm/p</code> ("cm" = cookie match) carrying an ID (<code>pcid</code>); request 2 of 2 shows the same ID arriving at Tapad.</figcaption></figure>
+
+<h3>Who did it: the site or the companies?</h3>
+<p>Chrome records <b>which script loaded which</b>, so we can answer this from the scan itself.</p>
+<div class="tablewrap"><table>
+<tr><th>What happened</th><th>Who is responsible</th><th>Evidence from this scan</th></tr>
+<tr><td>Trackers are on the site at all</td><td><b>The site owner</b> (or its marketing agency)</td><td>The UPES page itself loads Google Tag Manager, Snapchat, WebEngage, Zoho and Site24x7. Google Tag Manager is a container the site owner fills; it then loaded Facebook, Microsoft Clarity and Bing, Reddit, Quora, Ahrefs, Adobe Bizible, Smartlook and DoubleClick.</td></tr>
+<tr><td>Those trackers are tied to the site's ad accounts</td><td><b>The site owner</b></td><td>Google Ads account IDs are visible in the script addresses (<code>AW-16517558973</code>, <code>AW-16843662820</code>, <code>AW-964693448</code>). They belong to whoever runs the ad campaigns, typically admissions ads on Google, Facebook, Snapchat, Reddit and Quora.</td></tr>
+<tr><td>Companies swapping IDs with each other (Snapchat ↔ Tapad)</td><td><b>The companies</b></td><td>The swap happens through redirects between their own servers. The site owner usually does not control it and may not know it happens.</td></tr>
+<tr><td>The site's own visitor ID reaching 11 other domains</td><td><b>Both</b></td><td>Scripts the site installed read the site's own cookie and send it to their companies (Adobe, Google, Microsoft, Facebook and others). Installing them was the owner's choice; reading the cookie is the script's behaviour.</td></tr>
+<tr><td>Facebook → <code>on.aws</code></td><td><b>Unknown, probably the site's side</b></td><td><code>on.aws</code> is Amazon's hosting for small server programs, and the Facebook script itself sent data there. A common setup is Meta's Conversions API Gateway, which the advertiser runs in its own Amazon account. We cannot prove who runs it, so we report the owner as unknown.</td></tr>
+</table></div>
+<figure><img src="img/upes_map.png" alt="ID-sharing map for upes.ac.in: the site as a black square at the centre, thick violet ID-sharing lines to Google, Adobe, Microsoft and Facebook domains, a dashed redirect between snapchat.com and tapad.com" loading="lazy" width="1650" height="891"><figcaption><b>FIG 11</b>The upes.ac.in ID-sharing map. Grey arrows are "loaded by" links (who brought each company in); violet lines are shared IDs; the dashed teal pair at top left is the Snapchat ↔ Tapad redirect.</figcaption></figure>
+<div class="callout key">
+<p><b>One line for the panel:</b> "The site owner decides which trackers to put on the page, and we can show who loaded what. What those companies then do with each other is their own doing, and we can show that too."</p>
+<p><b>Say:</b> "These companies' code runs on the site and received these identifiers; here is the request." <b>Never say:</b> "UPES sells your data." We see sharing, not intent or contracts.</p>
+</div>
+<p><b>Fixed on 8 Oct after this scan:</b> the "companies" number was being overwritten by the same-company list (it showed 3 instead of 17), and storage inside a sandboxed frame (origin "null") was being treated as a company. Both are fixed and the scan was re-analysed from its saved data.</p>
+</section>
+
+<!-- =============================================================== 6 -->
 <section id="pilot">
-<h2>5. Pilot results</h2>
+<h2>6. Pilot results</h2>
 <p>50 well-known sites, 10 per sector, scanned on 7 Oct 2026 in quick passive mode: phone browser, landing page + 2 inner pages, no cookie choice made, <b>no form typing</b>. 49 completed; AJIO showed an "Access Denied" bot wall. This is a convenience sample to test the pipeline, not the study.</p>
-<figure><img src="img/pilot_strip.png" alt="Dot chart: tracking domains per site by sector. Government median 2, banking 10, health 13.5, e-commerce 15 with three sites above 40, education 16.5" loading="lazy" width="2475" height="975"><figcaption><b>FIG 9</b>Tracking domains per site. Each dot is a site; the tick is the sector median.</figcaption></figure>
+<figure><img src="img/pilot_strip.png" alt="Dot chart: tracking domains per site by sector. Government median 2, banking 10, health 13.5, e-commerce 15 with three sites above 40, education 16.5" loading="lazy" width="2475" height="975"><figcaption><b>FIG 12</b>Tracking domains per site. Each dot is a site; the tick is the sector median.</figcaption></figure>
 <div class="tablewrap"><table>
 <tr><th>Sector</th><th class="num">Completed</th><th class="num">Median tracking domains</th><th>Most</th><th class="num">Cookie banner</th></tr>
 <tr><td>Government</td><td class="num">10 / 10</td><td class="num">2</td><td>MyGov, 13</td><td class="num">2</td></tr>
@@ -416,9 +476,9 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 <p>Full numbers: <code>docs/pilot_results.md</code>. Raw rows: <code>var/pilot/pilot_50/results.csv</code>.</p>
 </section>
 
-<!-- =============================================================== 6 -->
+<!-- =============================================================== 7 -->
 <section id="panel">
-<h2>6. Presenting to the panel</h2>
+<h2>7. Presenting to the panel</h2>
 <h3>Three-minute talk track</h3>
 <div class="script">
 <p><span class="t">0:00</span>When you open a website, your browser quietly talks to many companies. Abroad, studies showed scripts sending your email to ad companies before you press Submit. Nobody has measured this for Indian sites, sector by sector.</p>
@@ -431,7 +491,7 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 
 <h3>Demo steps</h3>
 <ol>
-  <li>Start the test website and the app (section 8). Open <code>http://127.0.0.1:8000</code>.</li>
+  <li>Start the test website and the app (section 9). Open <code>http://127.0.0.1:8000</code>.</li>
   <li>Scan <code>http://shop.localhost:8765/</code>, <i>Thorough</i>. Point at the live log and the teal "typed test email" lines.</li>
   <li>While it runs (~2 min), open the stored test-shop case from <b>Case files</b>.</li>
   <li>Stamp and numbers → a High leak finding → <b>Show proof</b>: the SHA-256 hash highlighted.</li>
@@ -445,18 +505,20 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 <details class="qa"><summary>Isn't this just Blacklight or Leaky Forms?</summary><p>We build on both and cite them. Blacklight is a single-page tool for journalists; Leaky Forms studied EU/US top sites. Neither maps ID sharing or covers Indian sectors. Our contribution is the Indian sector study with proof per finding, +91 phone formats, and the India vendor list. In the second half we run Blacklight on 100 of our sites and report how well we agree.</p></details>
 <details class="qa"><summary>How do you know a leak is real and not a coincidence?</summary><p>The fake email is random and new for every scan, so finding it (or its hash) in a request cannot be a coincidence. Every leak links to the captured request. The negative control (searching for an email we never typed) gives zero hits.</p></details>
 <details class="qa"><summary>How do you know a value is a user ID?</summary><p>Two separate visitors plus a return visit: an ID is the same when visitor A comes back and different for visitor B. Timestamps and page names fail that test. The thresholds come from the 2016 Princeton million-site study.</p></details>
+<details class="qa"><summary>These are big claims about real sites. How can you be sure?</summary><p>Every number is a recorded request, not an estimate: the panel can open the site, press F12 and see the same requests (section 5). Company names come from six public lists, which the Companies tab shows. ID links are confirmed by comparing two separate visitors, and we report everything as a minimum because server-side sharing is invisible.</p></details>
+<details class="qa"><summary>Did the website or the companies do this?</summary><p>Both, and we can tell which. Chrome records which script loaded which: the site's own page or its Google Tag Manager container brought each tracker in, so placing them is the owner's choice (their ad-account IDs are visible in the requests). ID swaps between companies, such as Snapchat to Tapad, happen between the companies' own servers. Section 5 has the table.</p></details>
 <details class="qa"><summary>Where is the machine learning?</summary><p>Only where real labels exist, in the second half: a calibrated model for ID-link confidence (trained on ~300 hand-labelled links) and an explainable leak-risk model trained on canary-verified leaks. We deliberately do not train a "risk" model on labels we would invent.</p></details>
 <details class="qa"><summary>Why is there no risk score?</summary><p>A score is only meaningful once its weights are tested. We will show it with an uncertainty range, checked against rankings by three people, in the second half.</p></details>
-<details class="qa"><summary>Is typing into bank forms ethical or legal?</summary><p>We never submit, never type into password/OTP/card fields, and use only made-up values; submission is blocked in code. Real-site form tests have not run yet: they wait for the ethics committee. The pilot was passive (no typing).</p></details>
+<details class="qa"><summary>Is typing into bank forms ethical or legal?</summary><p>We never submit, never type into password/OTP/card fields, and use only made-up values; submission is blocked in code. The real-site form study waits for the ethics committee; so far we have only run one demo on our own university's public site (fake email, nothing submitted). The pilot was passive (no typing).</p></details>
 <details class="qa"><summary>What about tracking done server-side?</summary><p>It is invisible from the browser, so we report every number as a minimum. That limit is stated in the app and the paper.</p></details>
 <details class="qa"><summary>Why only 50 sites?</summary><p>It is a pilot to test the pipeline and measure cost. The study uses ~1,500 sites sampled from the Chrome UX Report India list, stratified by sector and popularity, with proper statistics.</p></details>
 <details class="qa"><summary>Who would actually use this?</summary><p>Privacy officers preparing for DPDP, payment-page owners and PCI assessors (script inventory), journalists, auditors, and the tracker-list maintainers who would receive our India list.</p></details>
 <details class="qa"><summary>What did you reuse?</summary><p>DuckDuckGo's autoconsent (cookie banners) and their browser-API list, public tracker datasets, and published methods reimplemented from the papers. Everything is credited in <code>NOTICE.md</code>.</p></details>
 </section>
 
-<!-- =============================================================== 7 -->
+<!-- =============================================================== 8 -->
 <section id="status">
-<h2>7. Done, to do, future</h2>
+<h2>8. Done, to do, future</h2>
 <h3>Done (first half)</h3>
 <ul class="checks done">
   <li>Crawler: phone emulation, visitors A/B/A2, landing + inner pages, request origins, POST bodies, cookies with who set them, storage, browser API hooks, cookie-banner modes, bot-wall detection, time limits</li>
@@ -494,9 +556,9 @@ footer { margin-top: 80px; font-size: 14px; color: var(--ink-3); border-top: 1px
 </ul>
 </section>
 
-<!-- =============================================================== 8 -->
+<!-- =============================================================== 9 -->
 <section id="run">
-<h2>8. Running it</h2>
+<h2>9. Running it</h2>
 <p>One-time setup (Windows, Python 3.11):</p>
 <pre>py -3.11 -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
@@ -517,9 +579,9 @@ cd frontend &amp;&amp; npm install &amp;&amp; npm run build</pre>
 </table></div>
 </section>
 
-<!-- =============================================================== 9 -->
+<!-- =============================================================== 10 -->
 <section id="glossary">
-<h2>9. Glossary</h2>
+<h2>10. Glossary</h2>
 <dl class="defs">
   <dt>Third party</dt><dd>Any domain other than the website's own registrable domain.</dd>
   <dt>Tracker</dt><dd>A third party whose purpose is advertising, analytics, social tracking, session recording or fingerprinting, per public lists or blocking rules.</dd>
